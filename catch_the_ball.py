@@ -150,9 +150,9 @@ while main == True:
 # calculating the distance between the player and the objectve.
 # so we can make a score system
 	
-	distane = ((x3-x)**2 + (y3-y)**2)
+	distance = ((x3-x)**2 + (y3-y)**2)
 
-	if distane <25 :
+	if distance <25 :
 		print("colision detected")
 		x3 = random.randint(50,740)
 		y3 = random.randint(50,740)
@@ -161,9 +161,9 @@ while main == True:
 		print("redscore is ",score)
 		
 
-	distane2 = ((x3-x2)**2 + (y3-y2)**2)
+	distance2 = ((x3-x2)**2 + (y3-y2)**2)
 
-	if distane2 <25 :
+	if distance2 <25 :
 		print("colision detected")
 		x3 = random.randint(50,740)
 		y3 = random.randint(50,740)
