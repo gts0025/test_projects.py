@@ -15,7 +15,7 @@ class point:
         width = screen.get_width()
         height = screen.get_height()
         
-        limit = 50
+        limit = 30
         g = Vector2(0,0.001)
         
       
@@ -27,7 +27,7 @@ class point:
             d = dist(self.pos,target.pos)
         
         
-        viscosity = scale(self.speed,1*10**-2)
+        viscosity = scale(self.speed,7*10**-2)
         pressure_constant = 1*10**-1
         tension_constant = -1*10**-2
         
@@ -50,7 +50,7 @@ class point:
             self.acce.scale(tension_constant)
             
             self.acce.add(g)
-            self.acce.scale((dotprod(self.acce,target.acce)))
+
             
         else:
             self.acce =g
