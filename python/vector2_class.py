@@ -42,7 +42,7 @@ class Vector2:
                 self.x = 1
                 
         else:   
-            h = (self.x**2 + self.y**2)**0.5
+            h = math.sqrt(self.x**2 + self.y**2)
             self.x /= h
             self.y /= h
         return self
@@ -85,12 +85,12 @@ class Vector2:
     def dist(self,other):
         
         #returns the distance between the vectors
-        return ((self.x - other.x)**2 + (self.y - other.y)**2)**0.5
+        return math.sqrt((self.x - other.x)**2 + (self.y - other.y)**2)
     
     def mag(self):
         
         #returns the size of magnitude of a vector
-        return (self.x**2 + self.y**2)**0.5
+        return math.sqrt(self.x**2 + self.y**2)
     
     def sine(self):
         
@@ -125,7 +125,7 @@ def norm(vector):
         else:
             vector.y = 1
     else:   
-        h = (vector.x**2 + vector.y**2)**0.5
+        h = math.sqrt(vector.x**2 + vector.y**2)
         vector.x /= h
         vector.y /= h
     return vector
