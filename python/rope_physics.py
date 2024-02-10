@@ -4,7 +4,7 @@ import time
 import random
 
 class Point:
-    def __init__(self,pos,speed,acce):
+    def __init__(self,pos = random_vector(0,100,0,100),speed = Vector2(1,1),acce = Vector2()):
        
         self.mass = random.randint(1,10)/10
         self.pos = pos
@@ -58,7 +58,6 @@ class Point:
    
         
     def pendulum_update(self,zero,g,recurrance,substeps,rest,tc,pc):
-
         recurrance -=1
         if recurrance == 0:
             pass
@@ -103,10 +102,10 @@ class Point:
             
                 
             self.acce.add(g)
-            fc = 0.003
             self.speed.add(self.acce)
             friction = scale(self.speed,-fc)
             self.speed.add(friction)
+            
             self.pos.add(self.speed)
     
             green = self.bright*(255 - tension)
@@ -132,48 +131,57 @@ class Point:
         pygame.draw.line(screen,(tension,255-tension,0),(self.pos.x,self.pos.y),(zero.x,zero.y))
         pygame.draw.circle(screen,(tension,0,255-tension),(self.pos.get_tup()),2)
 
-      
+
+class Rope:
+    def __init__(self,lenght):
+        self.points = []
+        self.lenght = lenght
+        for i in range(lenght):
+            self.points.append(Point(Vector2(random.randint(0,size),random.randint(0,size)),Vector2(0,0),Vector2(0,0)))
+    
+    def update(self):
+        for i in range(self.lenght):
+            if i != 0:
+                self.points[i].pendulum_update(self.points[i-1],g,2,sub_steps,rest,tc,pc)
+    
+    def net_update(self,other):
+        if self.lenght != other.lenght:
+            raise Exception("lenghts must be the same")
+        if type(other) != Rope:
+            raise Exception("argument must be an object with the 'Rope' class")
+        
+        for i in range(self.lenght):
+            self.points[i].pendulum_update(other.points[i],g,2,sub_steps,rest,tc,pc)
+
+class Net:
+    def __init__(self,dimensions):
+        self.ropes = []
+        self.dimensions = dimensions
+        for i in range(dimensions[0]):
+            self.ropes.append(Rope(dimensions[1]))
+            
+    def update(self):
+        for i in range(self.dimensions[0]):
+            if i > 0: 
+                self.ropes[i].net_update(self.ropes[i-1])
+            self.ropes[i].update()
+
 size = 700    
-
-point_cout = 10
 g = Vector2(0,0.001)
-tc = 3
-pc = 20
-rest = 0.05*size
-sub_steps = 2
+tc = 10
+pc = 5
+fc = 0.005
+rest = 0.02*size
+sub_steps = 1
+dt = 2
 
-pygame.init()
-
-
-def compare(rope1, rope2, rest, pc):
-    for point1 in rope1:
-        for point2 in rope2:
-            if (point1.id == point2.id) and (point1.level - point2.level) in [-1,1]:
-                point1.pendulum_update(point2,Vector2(0,0),1,sub_steps,rest,tc,pc)
-                
+net_obj = Net([20,20])
+friction = 0.1
+pygame.init()        
 screen = pygame.display.set_mode((size,size))   
 
 end = Vector2(300+random.randint(0,round(size/2)))
 start = Vector2(300+random.randint(0,round(size/2)))
-
-
-
-def gen_rope(rope,level):
-    for i in range(point_cout):
-        point = Point(Vector2(random.randint(0,size),random.randint(0,size)),Vector2(0,0),Vector2(0,0))
-        point.id = i
-        point.level = level
-        rope.append(point)
-
-rope_list = []
-def gen_rope_list(amout):
-    for i in range(amout):
-        rope = []
-        gen_rope(rope,i)
-        rope_list.append(rope)
-
-gen_rope_list(point_cout)
-
 wipe = pygame.Surface((size,size))
 #wipe.set_alpha(50)
 wipe.fill((0,0,0))
@@ -184,33 +192,9 @@ while True:
 
     screen.fill((0,0,0))
     
-    if mouse1_click == 1:
-        rope_list[0][-1].pendulum_update(start,g,1,sub_steps*2,rest,tc*2,pc)
-        
-    for rope in rope_list:
-        for point1 in rope:
-            for point2 in rope:
-                if point1.id - point2.id in (-1,1):
-                    if point1.level == 0:
-                         point1.pendulum_update(point2,scale(g,0),2,sub_steps,rest,tc,pc)
-                    else:
-                        point1.pendulum_update(point2,g,2,sub_steps,rest,tc,pc)
-        
-    
-    for rope in rope_list:
-        for point1 in rope:
-            for point2 in rope:
-                if point1.id == point2.id+1:
-                    point1.pendulum_update(point2,g,2,sub_steps,rest,tc,pc)
-    
-    for rope1 in rope_list:
-        for rope2 in rope_list:
-            compare(rope1, rope2, rest, pc)
-
-                    
-    if mouse_click == 1:
-       rope_list[0][0].pendulum_update(end,g,1,sub_steps*2,rest,tc*2,pc)
-    
+    net_obj.update()
+    if mouse1_click: net_obj.ropes[0].points[0].pendulum_update(start,Vector2(0,0),1,sub_steps,rest,tc,pc)
+    if mouse_click: net_obj.ropes[0].points[-1].pendulum_update(end,Vector2(0,0),1,sub_steps,rest,tc,pc)
     
     for event in pygame.event.get():
         
@@ -260,4 +244,4 @@ while True:
         
     pygame.display.flip()
     clock = pygame.time.Clock()
-    clock.tick(600)
+    #clock.tick(60)
