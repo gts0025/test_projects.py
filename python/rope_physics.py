@@ -136,7 +136,7 @@ class Point:
 size = 700    
 
 point_cout = 10
-g = Vector2(0,0)
+g = Vector2(0,0.001)
 tc = 3
 pc = 20
 rest = 0.05*size
