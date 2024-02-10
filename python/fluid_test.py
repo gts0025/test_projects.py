@@ -1,11 +1,11 @@
 import pygame
 from math import dist
 
-water_height = 300
+water_height = 200
 
 dt = 0.001
 g = 9.8 *dt
-fluid_density = 3
+fluid_density = 1
 fluid_drag = 1*10**-5
 air_drag = 1*10**-7
 max_dept = 0 
@@ -18,7 +18,7 @@ class point:
         self.speed = [0,0]
         self.side = 20
         self.area = self.side**2
-        self.mass = self.area*0.1
+        
         self.color = "white"
         
     def fall(self):
@@ -31,13 +31,19 @@ class point:
         if h < 0:
             "d_p/d_f = p_w/f_dw"
             "f_dw = p_w*(d_p/d_f)"
-            displaced_fluid = (fluid_density*((self.mass/self.area)/fluid_density))
+            displaced_fluid = (fluid_density*((self.mass)/fluid_density))
             if -h < self.side:
-                displaced_fluid-=(displaced_fluid*(1/((self.side-h)/self.side)))
+                d_proportion = 1/((self.side-h)/self.side)
+                displaced_fluid-=(displaced_fluid*d_proportion)
+                drag = fluid_drag*d_proportion + air_drag*(1-d_proportion)
+            else:
+                drag = fluid_drag
+            displaced_fluid*= self.area
+            
             #print(displaced_fluid)
             acce = -1*(g*displaced_fluid*fluid_density)/self.mass
             self.speed[1] += acce*dt
-            self.speed[1] += self.speed[1]*-fluid_drag*self.side
+            self.speed[1] += self.speed[1]*-drag*self.side
         else:
             self.speed[1] += self.speed[1]*-air_drag*self.side
         self.speed[1] += g
@@ -51,9 +57,9 @@ class point:
 p1 = point()
 p2 = point()
 p1.pos[0] -=50
-p2.pos[0] += 100
-p2.side += 50
-p2.pos[1] -= 50
+p2.pos[0] += 50
+p2.side += 10
+ 
 p2.color = "red"
 if __name__ == '__main__':
     clock = pygame.time.Clock()

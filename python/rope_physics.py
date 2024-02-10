@@ -4,7 +4,7 @@ import time
 import random
 
 class Point:
-    def __init__(self,pos = random_vector(0,100,0,100),speed = Vector2(1,1),acce = Vector2()):
+    def __init__(self,pos = Vector2(10,10),speed = Vector2(1,1),acce = Vector2()):
        
         self.mass = random.randint(1,10)/10
         self.pos = pos
@@ -94,19 +94,14 @@ class Point:
             self.acce.scale(0)
             self.acce.sub(sub(self.pos,zero))
             self.acce.norm()
+            self.acce.scale(((distance-rest)*tc))
 
-            if distance > rest:
-                self.acce.scale(((distance-rest)/size)*tc)
-            elif distance < rest:
-                self.acce.scale((1/(distance+rest)/size)*-pc)
-            
-                
             self.acce.add(g)
-            self.speed.add(self.acce)
+            self.speed.add(scale(self.acce,dt))
             friction = scale(self.speed,-fc)
             self.speed.add(friction)
             
-            self.pos.add(self.speed)
+            self.pos.add(scale(self.speed,dt))
     
             green = self.bright*(255 - tension)
             red =  self.bright*(tension)
@@ -167,16 +162,17 @@ class Net:
             self.ropes[i].update()
 
 size = 700    
-g = Vector2(0,0.001)
-tc = 10
+g = Vector2(0,0.005)
+tc = 0.1
+d_limit = 100
 pc = 5
-fc = 0.005
+fc = 0.001
 rest = 0.02*size
 sub_steps = 1
-dt = 2
+dt = 0.1
 
-net_obj = Net([20,20])
-friction = 0.1
+net_obj = Net([1,20])
+friction = 0.01
 pygame.init()        
 screen = pygame.display.set_mode((size,size))   
 
@@ -187,61 +183,60 @@ wipe = pygame.Surface((size,size))
 wipe.fill((0,0,0))
 mouse_click = 1
 mouse1_click = 1
-while True:
-    
-
-    screen.fill((0,0,0))
-    
-    net_obj.update()
-    if mouse1_click: net_obj.ropes[0].points[0].pendulum_update(start,Vector2(0,0),1,sub_steps,rest,tc,pc)
-    if mouse_click: net_obj.ropes[0].points[-1].pendulum_update(end,Vector2(0,0),1,sub_steps,rest,tc,pc)
-    
-    for event in pygame.event.get():
+clock = pygame.time.Clock()
+if __name__ == '__main__':
+    while True:
+        screen.fill((0,0,0))
         
-        if event.type == pygame.MOUSEMOTION:
-            mouse = update_vector(Vector2(0,0),pygame.mouse.get_pos())
-            
-            if mouse_click == 1:
+        net_obj.update()
+        if mouse1_click: net_obj.ropes[0].points[0].pendulum_update(start,Vector2(0,0),1,sub_steps,rest,tc,pc)
+        if mouse_click: net_obj.ropes[0].points[-1].pendulum_update(end,Vector2(0,0),1,sub_steps,rest,tc,pc)
+        
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEMOTION:
+                mouse = update_vector(Vector2(0,0),pygame.mouse.get_pos())
                 
-                try: end.sub(sub(end,mouse))
-                except: end.pos.sub(sub(end.pos,mouse))
-
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            
-            if event.button == 1:
-                if mouse1_click == 1:
-                    mouse1_click = 0
-                else:
-                    mouse1_click = 1
-            
-            elif event.button == 2:
                 if mouse_click == 1:
-                    mouse_click = 0
-                else:
-                    mouse_click = 1
-        
                     
-            else:
-                try: start.sub(sub(start,mouse))
-                except: start.pos.sub(sub(start.pos,mouse))
-        
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                
-                if mouse1_click == 1:
-                    mouse1_click = 0
-                else:
-                    mouse1_click = 1
+                    try: end.sub(sub(end,mouse))
+                    except: end.pos.sub(sub(end.pos,mouse))
 
-                if mouse_click == 1:
-                    mouse_click = 0
-                else:
-                    mouse_click = 1
+            elif event.type == pygame.MOUSEBUTTONDOWN:
                 
-        if event.type == pygame.QUIT:
-            pygame.quit()
-        
-        
-    pygame.display.flip()
-    clock = pygame.time.Clock()
-    #clock.tick(60)
+                if event.button == 1:
+                    if mouse1_click == 1:
+                        mouse1_click = 0
+                    else:
+                        mouse1_click = 1
+                
+                elif event.button == 2:
+                    if mouse_click == 1:
+                        mouse_click = 0
+                    else:
+                        mouse_click = 1
+            
+                        
+                else:
+                    try: start.sub(sub(start,mouse))
+                    except: start.pos.sub(sub(start.pos,mouse))
+            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    
+                    if mouse1_click == 1:
+                        mouse1_click = 0
+                    else:
+                        mouse1_click = 1
+
+                    if mouse_click == 1:
+                        mouse_click = 0
+                    else:
+                        mouse_click = 1
+                    
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            
+            
+        pygame.display.flip()
+        fps  = clock.get_fps()
+        print(fps)

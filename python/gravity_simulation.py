@@ -3,6 +3,9 @@
 import time
 import random
 import matplotlib.pyplot as lib
+import pygame
+pygame.init()
+screen = pygame.display.set_mode((700,700))
 
 inicio = time.time()
 t = 0 #tempo
@@ -13,7 +16,7 @@ m = 1 #massa
 g = 9.8 #gravidade
 v = 0 #velocidade
 vi = -50 #velocidade_inicial 
-vi2 = 10
+vi2 = 100
 a = 0 #altura
 q = a #queda
 loop = True
@@ -32,7 +35,7 @@ def velocidade(vi, gravidade, tempo):
     return velocidade
 
 def distancia(vi,tempo, gravidade):
-        return (tempo *vi+(tempo**2 *gravidade)/2)
+        return (tempo *vi+(tempo**2 *gravidade))
     
 def distancia2(v2, tempo):
     return  v2*tempo
@@ -60,6 +63,8 @@ print("calculando simulação")
 #preparando o loop principal
 while loop == True:
     #coleta de dados:
+    pygame.draw.circle(screen,"white",(d2,700+d),1)
+    pygame.display.flip()
     data_height.append(round(q,2))
     width.append(round(d2,2))
     
@@ -77,24 +82,24 @@ while loop == True:
     
     d2 = distancia2(vi2,t)
     
-    print(status())
+    #print(status())
     time.sleep(0)
-    t += 0.01
+    t += 0.0001
     fim = time.time()
     #visualização de dados
-    lib.style.use("dark_background")
-    lib.plot(width,data_height, label = "data_height")
-    lib.xlabel("distancia em metros")
-    lib.ylabel("altura em metros")
-    lib.title("lançamento vertical")
-    
-    
     
     if q < 0:
         print("fim da simulaçao")
-        print("tempo real: ", round(fim - inicio,2))
+        print("tempo real: ", round(fim - inicio,5))
         print(status())
         loop = False
-        lib.show()
-        lib.pause(0.1)
+        lib.style.use("dark_background")
+        lib.plot(width,data_height, label = "data_height")
+        lib.xlabel("distancia em metros")
+        lib.ylabel("altura em metros")
+        lib.title("lançamento vertical")
+
+        
+        #lib.show()
+        #lib.pause(0.1)
     
