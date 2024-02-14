@@ -1,6 +1,7 @@
 import pygame,random
 from vector2_class import*
 
+
 class point:
     def __init__(self,pos,speed,acce):
         self.acce = acce
@@ -8,7 +9,6 @@ class point:
         self.pos = pos
         self.active = -1
         self.hp = random.randint(100,200)
-        self.color = (255,255,255)
         
         
     def liquid_update(self,target,screen,dt):
@@ -16,45 +16,43 @@ class point:
         width = screen.get_width()
         height = screen.get_height()
         
-        limit = 30
-        g = Vector2(0,9.8*10**-4)
+        limit = 50
+        limit_range = limit+ 10
+        g = Vector2(0,0.001)
         
       
         
         self.acce.scale(0)
         if self.pos.get_tup() == target.pos.get_tup():
             d = 0
-            
-            self.pos.x += random.randint(-1,1)/100
-            self.pos.y += random.randint(-1,1)/100
-                    
-        else: d = dist(self.pos,target.pos)
+        else:
+            d = dist(self.pos,target.pos)
         
         
         viscosity = scale(self.speed,1*10**-2)
-        pressure_constant = 5*10**0
-        tension_constant = 5*10**-3
+        pressure_constant = 0.3*10**-1
+        tension_constant = -5*10**-2
         
         self.acce = sub(self.pos,target.pos)
-        self.acce.add(scale(g,1/2))
         
-        
-        if d < limit and d>1:
-            
-            self.acce.scale(1/(d+1))
-            self.acce.scale(pressure_constant/d**2)
-            self.speed.sub(viscosity)
-            self.acce.add(scale(g,1/2))
-            
-            
-        elif d > limit and d < limit+0.1:
     
-            self.acce.scale(tension_constant*(-d+limit))
-            self.speed.add(viscosity)
-            self.acce.add(scale(g,1/2))
+        if d > 1 and d < limit:
             
+            self.acce.scale(1/(d))
+            self.acce.scale(pressure_constant)
+            self.acce.sub(viscosity)
 
-
+            self.acce.add(g)
+            #self.acce.scale((dotprod(self.acce,target.acce)))
+            
+            
+        elif d > limit and d < limit_range:
+    
+            self.acce.scale((d/100)-limit/100)
+            self.acce.scale(tension_constant)
+            
+            self.acce.add(g)
+            self.acce.scale((dotprod(self.acce,target.acce)))
             
         else:
             self.acce =g
@@ -78,7 +76,7 @@ class point:
             self.pos.y = 2
             self.speed.y *= -0.5 
 
- 
+
 def fluid_fill(amount,level,x_start,x_end,y_star,y_end):
     
     for i in range(amount):
@@ -95,7 +93,7 @@ def liquid_cleanup(liquid_list):
         if drop.hp > 0:
             new_list.append(drop)
         else:
-            fluid_fill(1,new_list,950,1000,650,700)
+            fluid_fill(1,new_list,10,100,10,100)
             
     liquid_list.clear()
     liquid_list.extend(new_list)
@@ -106,9 +104,8 @@ def liquid_list_update(liquid_list):
     for drop in liquid_list:
         for target in liquid_list:
             if drop is not target:
-                
                 drop.liquid_update(target,screen,dt)
-                pygame.draw.circle(screen,drop.color,drop.pos.get_tup(),1)
+                pygame.draw.circle(screen,(255,0,0),drop.pos.get_tup(),2)
 
 def instersect(pos1,pos2,range):
     
@@ -121,9 +118,7 @@ size = 100
 point_list = []
 screen = pygame.display.set_mode((size*4,size*4))
 clock = pygame.time.Clock()
-
-fluid_fill(100,point_list,0,size*2,0,size*2)
-
+fluid_fill(200,point_list,0,size*2,0,size*2)
 
     
 while True:
