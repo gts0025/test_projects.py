@@ -162,7 +162,7 @@ class Net:
             self.ropes[i].update()
 
 size = 700    
-g = Vector2(0,0.005)
+g = Vector2(0,0.01)
 tc = 0.1
 d_limit = 100
 pc = 5
@@ -171,7 +171,7 @@ rest = 0.02*size
 sub_steps = 1
 dt = 0.1
 
-net_obj = Net([1,20])
+net_obj = Net([10,20])
 friction = 0.01
 pygame.init()        
 screen = pygame.display.set_mode((size,size))   

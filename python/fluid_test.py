@@ -1,12 +1,12 @@
 import pygame
 from math import dist
 
-water_height = 200
+water_height = 250
 
 dt = 0.001
 g = 9.8 *dt
-fluid_density = 1
-fluid_drag = 1*10**-5
+fluid_density = 5
+fluid_drag = fluid_density*10**-6
 air_drag = 1*10**-7
 max_dept = 0 
 fluid_surface = pygame.Surface((400,400-water_height))
@@ -14,7 +14,7 @@ fluid_surface.fill((20,20,200))
 fluid_surface.set_alpha(125)
 class point:
     def __init__(self):
-        self.pos =[200,70]
+        self.pos =[200,-50]
         self.speed = [0,0]
         self.side = 20
         self.area = self.side**2
@@ -43,9 +43,10 @@ class point:
             #print(displaced_fluid)
             acce = -1*(g*displaced_fluid*fluid_density)/self.mass
             self.speed[1] += acce*dt
-            self.speed[1] += self.speed[1]*-drag*self.side
+            self.speed[1] += self.speed[1]*(-drag*self.side)
         else:
-            self.speed[1] += self.speed[1]*-air_drag*self.side
+            self.speed[1] += self.speed[1]*(-air_drag*self.side)
+            
         self.speed[1] += g
         self.pos[1] += self.speed[1]*dt
 
@@ -59,6 +60,7 @@ p2 = point()
 p1.pos[0] -=50
 p2.pos[0] += 50
 p2.side += 10
+p2.pos[1]-= 10
  
 p2.color = "red"
 if __name__ == '__main__':
