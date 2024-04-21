@@ -1,0 +1,52 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
+# Parameters
+c = 7.0  # Wave speed
+Lx, Ly = 100.0, 100.0  # Domain size
+T = 10.0  # Total simulation time
+Nx, Ny = 100, 100  # Number of spatial grid points
+Nt = 100  # Number of time steps
+
+# Discretization
+dx = Lx / (Nx - 1)
+dy = Ly / (Ny - 1)
+dt = T / Nt
+
+# Initial conditions
+x = np.linspace(0, Lx, Nx)
+y = np.linspace(0, Ly, Ny)
+X, Y = np.meshgrid(x, y)
+
+# Initial wave shape (you can modify this for different initial conditions)
+u = np.exp(-(X - Lx / 2)**2 - (Y - Ly / 2)**2)
+
+# Arrays to store the solution
+u_history = np.zeros((Nt + 1, Nx, Ny))
+
+# Time-stepping loop
+for n in range(Nt + 1):
+    u_history[n, :, :] = u.copy()
+
+    # Update using the wave equation
+    u[1:-1, 1:-1] = u[1:-1, 1:-1] + dt**2 * c**2 * (
+        (u[2:, 1:-1] - 2 * u[1:-1, 1:-1] + u[:-2, 1:-1]) / dx**2 +
+        (u[1:-1, 2:] - 2 * u[1:-1, 1:-1] + u[1:-1, :-2]) / dy**2
+    )
+
+# Animation function
+def update(frame):
+    plt.clf()
+    plt.contourf(X, Y, u_history[frame, :, :])
+    plt.title(f'Time: {frame * dt:.2f}')
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    plt.colorbar()
+
+# Create animation
+fig, ax = plt.subplots()
+animation = FuncAnimation(fig, update, frames=Nt + 1, interval=100, repeat=False)
+
+plt.show()
+

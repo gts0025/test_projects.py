@@ -1,0 +1,102 @@
+import pygame
+from random import randint
+pygame.init()
+sizes = [800,500]
+screen = pygame.display.set_mode(sizes)
+clock = pygame.time.Clock()
+level = []
+
+class replicant:
+    def __init__(self):
+        self.pos = [sizes[0]/2,sizes[1]/2]
+        self.direction = [randint(-10,10)/10,randint(-10,10)/10]
+        self.endurance = 100
+        self.fatigue = 0 
+        self.replication = 2
+        self.child_count = 0
+        self.gen = 0
+        
+    def move(self):
+        if self.pos[0] < 0 or self.pos[0] > sizes[0]:
+            self.fatigue = self.endurance
+        if self.pos[1] < 0 or self.pos[1] > sizes[1]:
+            self.fatigue = self.endurance
+            
+        if randint(0,100) < self.replication  and self.child_count < self.replication and len(level) < 10000:
+            child = replicant()
+            if self. replication < 10:
+                child.replication += randint(-1,1)
+            else:
+                child.replication += randint(-1,0)
+                
+            child.pos = [self.pos[0]+randint(-2,2),self.pos[1]+randint(-2,2)]
+            if self.endurance < 230:
+                child.endurance = self.endurance+(randint(-10,20))
+            else:
+                child.endurance = self.endurance+(randint(-10,0))
+            self.replication -= 1
+            self.fatigue += 10
+                
+            level.append(child)
+        else:
+            self.fatigue += 0.5
+            self.pos[0] += self.direction[0]
+            self.pos[1] += self.direction[1] 
+            color = (self.endurance,100,self.replication*25)
+            try:pygame.draw.circle(screen,color,self.pos,2)
+            except:
+                print(color)
+
+class Graph:
+    def __init__(self):
+        self.data = []
+        self.data_lenght = 100
+    
+    def insert(self,point):
+        if len(self.data) > self.data_lenght:
+            self.data.remove(self.data[0])
+        self.data.append(point)
+    
+    def background(self):
+        rect = (5,sizes[1]-50,110,50)
+        pygame.draw.rect(screen,"black",rect)
+        pygame.draw.rect(screen,"white",rect,1)
+        
+    def show(self,color,scale):
+        x = 0
+        for p in self.data:
+            pygame.draw.circle(screen,color,(x+10,sizes[1]-p*scale),1)
+            x += 1
+    
+        
+level.append(replicant())
+graph1 = Graph()
+graph2 = Graph()
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            
+    screen.fill("black")
+    new_level = []
+    average_stamina = 0
+    average_replication = 0
+    for i in level:
+        if i.fatigue < i.endurance:
+            i.move()
+            new_level.append(i)
+            average_stamina += i.endurance
+            average_replication += i.replication
+    average_replication/=len(level)
+    average_stamina/=len(level)
+    graph1.insert(average_stamina)
+    graph2.insert(average_replication)
+    #graph1.background()
+    graph1.show("blue",1)
+    graph2.show("red",100)
+    #print("replicatin",round(average_replication,2),"stamina",round(average_stamina,2))
+    level.clear()
+    level.extend(new_level)
+    pygame.display.flip()
+    clock.tick(60)
+    
