@@ -2,6 +2,8 @@ import pygame
 from vector2_class import *
 from random import randint
 pygame.init()
+import os
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 screen = pygame.display.set_mode((1000,600))
 center = Vector2(500,300)
@@ -11,12 +13,12 @@ wipe.fill((0,0,2))
 wipe.set_alpha(50)
 
 #loading all the sounds 
-metal1 = pygame.mixer.Sound('c:/Users/gts00/OneDrive/Área de Trabalho/codes/python/raycast_project/metal1.mp3')
-metal2 = pygame.mixer.Sound('c:/Users/gts00\OneDrive/Área de Trabalho/codes/python/raycast_project/metal2.mp3')
-metal3 = pygame.mixer.Sound('c:/Users/gts00\OneDrive/Área de Trabalho/codes/python/raycast_project/test1.mp3')
-wood1 = pygame.mixer.Sound('c:/Users/gts00\OneDrive/Área de Trabalho/codes/python/raycast_project/wood1.mp3')
-step_sound1 = pygame.mixer.Sound('c:/Users/gts00/OneDrive/Área de Trabalho/codes/python/raycast_project/step2.mp3')
-colide_sound = pygame.mixer.Sound('c:/Users/gts00/OneDrive/Área de Trabalho/codes/python/raycast_project/step3.mp3')
+metal1 = pygame.mixer.Sound('metal1.mp3')
+metal2 = pygame.mixer.Sound('metal2.mp3')
+metal3 = pygame.mixer.Sound('test1.mp3')
+wood1 = pygame.mixer.Sound('wood1.mp3')
+step_sound1 = pygame.mixer.Sound('step2.mp3')
+colide_sound = pygame.mixer.Sound('step3.mp3')
 colide_sound.set_volume(0.05)
 step_play = 0
 

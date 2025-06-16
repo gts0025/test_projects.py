@@ -4,6 +4,8 @@
 
 import pygame,random
 from menu_class import Menu,Button
+import os
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 
 
@@ -11,12 +13,12 @@ pygame.init()
 
 pygame.mouse.set_visible(0)
 
-click = pygame.mixer.Sound("c:/Users/gts00\OneDrive/Área de Trabalho/codes/python/shadow_project/click.mp3")
-punch = pygame.mixer.Sound("c:/Users/gts00\OneDrive/Área de Trabalho/codes/python/shadow_project/punch.mp3")
+click = pygame.mixer.Sound("click.mp3")
+punch = pygame.mixer.Sound("punch.mp3")
 
 click.set_volume(0.5)
 punch.set_volume(5)
-icon_image = pygame.image.load("c:/Users/gts00\OneDrive/Área de Trabalho\codes/python/shadow_project/random_logo.png")
+icon_image = pygame.image.load("random_logo.png")
 
 screen = pygame.display.set_mode((400,400))
 pygame.display.set_caption("falling bodies")

@@ -1,5 +1,6 @@
 #gravity_light
 from vector2_class import*
+from random import*
 import pygame
 
 size = 700

@@ -1,6 +1,8 @@
 
 from vector2_class import*
 import pygame
+import os
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 size = 400
 pygame.init()

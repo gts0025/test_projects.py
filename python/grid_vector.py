@@ -127,7 +127,7 @@ mouse = Point()
 
 dt = 1
 tension_c = 1
-mouse_tension = 10
+mouse_tension = 100
 pressure_c = 3
 mouse_pressure = 10
 average_speed = Vector2(0,0)

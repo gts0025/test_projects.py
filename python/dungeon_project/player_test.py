@@ -1,6 +1,8 @@
 import pygame
 pygame.init()
 time = pygame.time.Clock()
+import os
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 screen = pygame.display.set_mode((400,400))
 

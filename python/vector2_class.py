@@ -194,6 +194,11 @@ def update_vector(vector,array):
     vector.x = array[0]
     vector.y = array[1]
     return vector
+
+def copy_vector(vector):
+    return Vector2(vector.x,vector.y)
+
+
 def random_vector(x_start,x_end,y_start,y_end):
     return (Vector2(random.randint(x_start,x_end),random.randint(y_start,y_end)))
     

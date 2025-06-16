@@ -5,7 +5,7 @@ class Node:
         self.pos = [0,0]
         self.basket = []
         self.size = size
-        self.chilren = [0,0,0,0]
+        self.children = [0,0,0,0]
         self.amount = 0
         self.color = (0,0,0)
         self.level = 0
@@ -26,8 +26,8 @@ class Node:
                 if value.pos[0] < self.pos[0] + self.size/2:
                     if value.pos[1] < self.pos[1] + self.size/2:
                         
-                        if self.chilren[0] != 0:
-                            self.chilren[0].add_value(value)
+                        if self.children[0] != 0:
+                            self.children[0].add_value(value)
                         else:
                             new_child = Node()
                             new_child.pos = [self.pos[0],self.pos[1]]
@@ -35,10 +35,10 @@ class Node:
                             new_child.level = self.level+1
                             new_child.add_value(value)
                             
-                            self.chilren[0] = new_child
+                            self.children[0] = new_child
                     else:
-                        if self.chilren[1] != 0:
-                            self.chilren[1].add_value(value)
+                        if self.children[1] != 0:
+                            self.children[1].add_value(value)
                         else:
                             new_child = Node()
                             new_child.pos = [self.pos[0],self.pos[1]+self.size/2]
@@ -46,12 +46,12 @@ class Node:
                             new_child.level = self.level+1
                             new_child.add_value(value)
                             
-                            self.chilren[1] = new_child
+                            self.children[1] = new_child
                             
                 else:
                     if value.pos[1] < self.pos[1] + self.size/2:
-                        if self.chilren[2] != 0:
-                            self.chilren[2].add_value(value)
+                        if self.children[2] != 0:
+                            self.children[2].add_value(value)
                         else:
                             new_child = Node()
                             new_child.pos = [self.pos[0]+self.size/2,self.pos[1]]
@@ -59,10 +59,10 @@ class Node:
                             new_child.level = self.level+1
                             new_child.add_value(value)
 
-                            self.chilren[2] = new_child
+                            self.children[2] = new_child
                     else:
-                        if self.chilren[3] != 0:
-                            self.chilren[3].add_value(value)
+                        if self.children[3] != 0:
+                            self.children[3].add_value(value)
                         else:
                             new_child = Node()
                             new_child.pos = [self.pos[0] + self.size/2,self.pos[1] + self.size/2]
@@ -70,6 +70,6 @@ class Node:
                             new_child.level = self.level+1
                             new_child.add_value(value)
 
-                            self.chilren[3] = new_child
+                            self.children[3] = new_child
         else:
             value.update()

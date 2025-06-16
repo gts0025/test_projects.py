@@ -66,11 +66,9 @@ while True:
     
     q = input("use a comand ")
     if q == "/help":
-        
-        print("help:")
+        print("possible comands: /show, /add, /update ")
         
     if q == "/show":
-        
         item = input("what do you want to see ")
         print(storage.show(item))
         

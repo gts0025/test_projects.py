@@ -1,6 +1,8 @@
 import requests
 import pygame
 import datetime
+import os
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 #c = str(input("city, state and/or country"))
 c = "brazil"
@@ -30,13 +32,13 @@ pygame.init()
 screen = pygame.display.set_mode((400, 400))
 font1 = pygame.font.Font(None, 70)
 font2 = pygame.font.Font(None, 30)
-night_image = pygame.image.load("C:/Users/gts00/OneDrive/Área de Trabalho/codes/python/night.png")
+night_image = pygame.image.load("night.png")
 night_image = pygame.transform.scale(night_image, (400, 400))
-hot_image = pygame.image.load("C:/Users/gts00/OneDrive/Área de Trabalho/codes/python/hot.png")
+hot_image = pygame.image.load("hot.png")
 hot_image = pygame.transform.scale(hot_image, (400, 400))
-morning = pygame.image.load("C:/Users/gts00/OneDrive/Área de Trabalho/codes/python/morning.png")
+morning = pygame.image.load("morning.png")
 morning = pygame.transform.scale(morning, (400, 400))
-day = pygame.image.load("C:/Users/gts00/OneDrive/Área de Trabalho/codes/python/day.png")
+day = pygame.image.load("day.png")
 day = pygame.transform.scale(day, (400, 400))
 
 while 1:

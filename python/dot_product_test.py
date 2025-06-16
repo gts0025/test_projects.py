@@ -54,7 +54,7 @@ def gen(n):
     for i in range(n):
         level.append(Dot())
 
-gen(300)
+gen(2)
 
 while True:
     

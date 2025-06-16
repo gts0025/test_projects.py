@@ -110,7 +110,7 @@ while True:
     grid.gen_space()
     grid.fill_space(particles)
     
-    #grid.show()
+    grid.show()
     pygame.display.flip()
     clock.tick(60)
     

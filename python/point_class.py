@@ -83,7 +83,7 @@ class Point:
             
             self.pos.add(self.speed)
             
-    def oring_update(self,g,rest,tc,pc,fc,size):
+    def origing_update(self,g,rest,tc,pc,fc,size):
         self.pendulum_update(self.origin,g,rest,tc,pc,fc,size)
     
     

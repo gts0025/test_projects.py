@@ -82,7 +82,7 @@ time_step = 0
 
 #virus creation
 spread = 8
-shield = 2
+shield = 3
 strenght = 1
 host = random.randint(-size,size)
 v12 = virus(spread,"v12",host,shield,strenght)

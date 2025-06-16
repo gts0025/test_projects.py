@@ -17,6 +17,7 @@ class Dot:
         while self.speed[0] == 0 and self.speed[1] == 0:
             self.speed = [randint(-10,10)/10,randint(-10,10)/10]
         self.mass = 1
+        self.t = 0
     def move(self):
         self.pos[0] += self.speed[0]
         self.pos[1] += self.speed[1]
@@ -62,11 +63,11 @@ class Dot:
         self.speed = [new_speed_y,new_speed_x]
         
         if s_mag < 1:
-            self.speed[0] *= 1.001
-            self.speed[1] *= 1.001
+            self.speed[0] *= 1.1
+            self.speed[1] *= 1.1
         elif s_mag  > 1:
-            self.speed[0] *= 0.999
-            self.speed[1] *= 0.999
+            self.speed[0] *= 0.9
+            self.speed[1] *= 0.9
 
 level = []
 masses = {}
