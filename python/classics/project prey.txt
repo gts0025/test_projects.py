@@ -1,0 +1,8 @@
+this is a project to simulate a basic ecosystem using oop and symple list iteration
+
+it will only compute predator and prey behaviour using simlple variables and object atributes
+
+if a prey survive an x amout of iteratios, it can assexually reproduce (clone itself) wtih some moditfications in its aributess
+the same occurs to a predator if it succesfully cath it's prey
+
+if the predator cathces a prey, the prey ceases to exist (get's removed from the list of objects)
