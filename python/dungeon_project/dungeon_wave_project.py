@@ -254,9 +254,6 @@ def gen_spawns():
     for i in range(10):
         spawn_pos = random_vector(-size,size*2,-size,size*2)
         pygame.display.flip()
-        while dist(spawn_pos,point) < size*0.5:
-            spawn_pos = random_vector(0,size,0,size)
-        
         spawn_positins.append(spawn_pos)
 
 
@@ -531,7 +528,7 @@ while True:
             
         #pygame.draw.rect(screen,"white",(50,10,(death_count/death_target)*100,10),2)
         death_surface = pygame.Surface((size,size))
-        death_surface.set_alpha(1)
+        death_surface.set_alpha(10)
         death_surface.fill(("black"))
         
         #screen.blit(death_surface,(0,0))
