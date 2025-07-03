@@ -37,7 +37,7 @@ def exist(name,data):
 
 def add(data):
 
-    name = input("type down the item's name.")
+    name = input("type down the item's name: ")
 
     if exist(name,data):
         print("item already exists")
@@ -46,8 +46,8 @@ def add(data):
     try:
         item = {
             "Name":name,
-            "Amount":int(input("write down item amount:")),
-            "Price":float(input("write down item price:"))
+            "Amount":int(input("write down item's amount: ")),
+            "Price":float(input("write down item's price: "))
         }
         return pd.concat([data,pd.DataFrame([item])],axis=0)
     except:
@@ -56,7 +56,7 @@ def add(data):
     
 
 def delete_by_name(data):
-    name  =  input("name")
+    name  =  input("name: ")
     if not exist(name,data):
         print("item does not exists")
         return data
@@ -66,7 +66,7 @@ def delete_by_name(data):
 
 
 def update_by_name(data):
-    name  =  input("name")
+    name  =  input("name: ")
     if not exist(name,data):
         print("item does not exists")
         return data
@@ -75,9 +75,9 @@ def update_by_name(data):
     
     try:
         item = {
-            "Name":name,
-            "Amount":int(input("write down new item amount:")),
-            "Price":float(input("write down new item price:"))
+            "Name":input("comfirm item's name: "),
+            "Amount":int(input("write down new item amount: ")),
+            "Price":float(input("write down new item price: "))
         }
         data.loc[data["Name"] == name , "Amount"] = item["Amount"]
         data.loc[data["Name"] == name , "Price"] = item["Price"]
@@ -87,16 +87,15 @@ def update_by_name(data):
         return data
     
 
-    return data
 
 
 
     
 def system_whipe_all(data):
     choice = input("""
-    are you sure you want to delete the whole data?
-    write [yes i'm sure] to proceed, anything else to cancel the comand
-    """)
+                   are you sure you want to delete the whole data?
+                   write [yes i'm sure] to proceed, anything else to cancel the comand 
+                   """)
 
     if choice == "yes i'm sure":  
         print("data removed")
@@ -176,8 +175,7 @@ while running:
             running = close(running,changes)
         
         case "/update by name":
-            data.iloc()
-
+            data = update_by_name(data)
         case _:
             print("comand does not exist")
             
