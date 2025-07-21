@@ -21,6 +21,7 @@ def new_data():
     return data
 
 
+
 if not os.path.exists("data.csv"):
     data = new_data()
 
@@ -71,8 +72,7 @@ def update_by_name(data):
         print("item does not exists")
         return data
 
-    matches = data[data["Name"] == name]
-    
+
     try:
         item = {
             "Name":input("comfirm item's name: "),
