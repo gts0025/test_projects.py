@@ -2,8 +2,7 @@ import customtkinter as ctk
 from random import choice
 root = ctk.CTk()
 root.geometry("800x800")
-
-
+shown = []
 #main panels placement
 left = ctk.CTkFrame(master=root,fg_color="gray11")
 left.place(
@@ -52,6 +51,21 @@ def show_side_panel(name):
         anchor="w"
     )
     amount_label.pack(fill="x", padx=10, pady=5)
+    buttons = ctk.CTkFrame(master=left_panel)
+    edit = ctk.CTkButton(
+        text="edit",master = buttons,
+        command = show_add_edit())
+    
+    edit.place(relwidth = 0.3,  relheight = 0.5, relx = 0.1, rely = 0.32 )
+    delete = ctk.CTkButton(
+        text="delete",
+        master = buttons,
+        fg_color="red",
+        hover_color="darkred",
+        command=lambda entry = name: delete_entry(name)
+        )
+    delete.place(relwidth = 0.3,  relheight = 0.5, relx = 0.6, rely = 0.32 )
+    buttons.pack(fill="x")
 
 
 def show_add_edit(edit = 0):
@@ -76,7 +90,13 @@ def show_add_edit(edit = 0):
     )
     price.pack(fill="x", padx=10, pady=5)
 
-    buttons = ctk.CTkFrame(master=left_panel,)
+
+    buttons = ctk.CTkFrame(master=left_panel)
+    proceed = ctk.CTkButton(text="proceed",master = buttons)
+    proceed.place(relwidth = 0.3,  relheight = 0.5, relx = 0.1, rely = 0.32 )
+    cancel = ctk.CTkButton(text="cancel",master = buttons, fg_color="red",hover_color="darkred")
+    cancel.place(relwidth = 0.3,  relheight = 0.5, relx = 0.6, rely = 0.32 )
+    buttons.pack(fill="x")
 
 show_add_edit()
 # data side:
@@ -87,20 +107,38 @@ column.place(relx = 0.0,
            relwidth =1,
            relheight =0.99
            )
-for i in range(500):
-    entry = choice(random_names)
-    entr_frame = ctk.CTkButton(
-        master=column,
-        text = entry,
-        command=lambda e=entry: show_side_panel(e),
-        fg_color="#383838",
-        hover_color="#4e4e4e",
 
-        text_color="white",
-        corner_radius=0)
-    
-    entr_frame.pack(fill = "x", pady = 0, padx = 0)
-    
+def load_column():
+    global column
+    for widget in column.winfo_children():
+        widget.destroy()
+
+    for i in range(500):
+        
+        
+        entry = choice(random_names)
+        entr_frame = ctk.CTkButton(
+            master=column,
+            text = entry,
+            command=lambda e=entry: show_side_panel(e),
+            fg_color="#383838",
+            hover_color="#4e4e4e",
+
+            text_color="white",
+            corner_radius=0)
+        
+        entr_frame.pack(fill = "x", pady = 0, padx = 0)
+load_column()
+
+
+def delete_entry(name):
+    global column
+    for widget in column.winfo_children():
+        if widget.cget("text") == name:
+            widget.destroy()
+            break
+
+        
 #general side:
 
 
