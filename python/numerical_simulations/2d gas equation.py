@@ -15,14 +15,14 @@ img = Image.open("airfoil.png").convert('L')
 im_data = np.array(img).astype(np.float32) / 255.0
 bright = im_data
 bright = np.zeros([100,100])
-bd = 4# base density
+bd = 2# base density
 max_speed = 2.3
 bs = 2
 mask = np.zeros_like(bright)
 
 
 dt = 0.1
-vd = 0.34
+vd = 0.3
 dd = 0.0
 td = 0.1
 id = 0.1
@@ -108,7 +108,7 @@ for i in range(bright.shape[0]):
         else:value = 1
 
 mask = np.array(mask)
-ink[:50,:50] = 2
+#ink[:50,:50] = 2
 def solve(n):
  
     global velocity_v
@@ -121,7 +121,7 @@ def solve(n):
         print(n) 
       
     
-
+    
     for step in range(substeps):
         
         
@@ -138,6 +138,9 @@ def solve(n):
 
         #velocity_v[40:50,0:5] = 2
         
+
+        
+        heat[-2:,3:] = 2
         dux = derivative(velocity_u, 0)
         duy = derivative(velocity_u, 1)
 
@@ -232,7 +235,7 @@ def solve(n):
 
         # top boundary:
         velocity_u[0, :] = 0
-        velocity_v[0, :] = 1.3
+        velocity_v[0, :] = velocity_v[1,:]
         density[0, :] = bd
         heat[0, :] = 0
         ink[0, :] = ink[1, :]
@@ -249,16 +252,16 @@ def solve(n):
     curl = (duy - dvx)*10
     div = (dux + dvy)*10
     
-    implot.set_data(ink)
+    implot.set_data(heat)
 
     
      
 
-path = 'C:/Users/gts00/OneDrive/Área de Trabalho/data/python/lid_driven_cavity_flow.gif'
+path = 'lid_driven_cavity_flow.gif'
 writer = animation.PillowWriter(fps=25,bitrate=500)
 print("running")
 data = animation.FuncAnimation(figure,solve, frames = 400, interval = 1)
-#plt.show()
+plt.show()
 print("saving")
 data.save(path,writer = writer)
 print("done")
