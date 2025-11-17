@@ -18,7 +18,7 @@ class Agent():
             self.alive = 0   
     
     def try_duplicate(self):
-        if np.random.random() < (0.03 + self.t*0.05)*(1-(len(agents)/1000)):
+        if np.random.random() < (0.03)*(1-(len(agents)/1000)):
             child = Agent()
             child.t = self.t
             if np.random.random() < 0.2:
@@ -41,7 +41,7 @@ class quadtree:
 agents = []
 fig, ax = plt.subplots(2,1)
 
-for i in range(400):
+for i in range(100):
     agents.append(Agent())
 
 print(agents[0].pos)

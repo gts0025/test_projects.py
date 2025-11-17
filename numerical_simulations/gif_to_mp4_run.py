@@ -6,7 +6,7 @@ files = os.listdir()
 import moviepy as mp
 for file in files: 
     if file.endswith(".gif"): 
-        
+        print(" flie " + file + "found")
         final = file.replace("gif","mp4") 
         
         clip = mp.VideoFileClip(file)
