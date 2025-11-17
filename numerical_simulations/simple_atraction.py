@@ -29,8 +29,10 @@ class Body:
         self.line_plot[0].append(self.pos[0])
         self.line_plot[1].append(self.pos[1])
 
-    def show_plot(self):
+    def plot(self,ax):
         ax.plot(self.line_plot[0][:],self.line_plot[1][:])
+
+    def scatter(self,ax):
         ax.scatter(self.pos[0],self.pos[1])
 
     
@@ -51,49 +53,52 @@ class Body:
 
 
 
+if __name__  == "__main__":
 
-b1 = Body()
-b2 = Body()
-b3 = Body()
-b1_line = [[],[]]
-b2_line = [[],[]]
-b3_line = [[],[]]
-t = 0
+    b1 = Body()
+    b2 = Body()
+    b3 = Body()
+    b1_line = [[],[]]
+    b2_line = [[],[]]
+    b3_line = [[],[]]
+    t = 0
 
-fig,ax = plt.subplots(1,1)
+    fig,ax = plt.subplots(1,1)
 
-for i in range(10000):
-    
-    b1.add_plot()
-    b2.add_plot()
-    #b3.add_plot()
+    for i in range(10000):
+        
+        b1.add_plot()
+        b2.add_plot()
+        #b3.add_plot()
 
-    b1.show_plot()
-    b2.show_plot()
-    #b3.show_plot()
+        b1.plot(ax)
+        b2.plot(ax)
+        b1.scatter(ax)
+        b2.scatter(ax)
+        #b3.show_plot()
 
-    
-    plt.title("dt: "+str(round(t,2)))
-    ax.set_aspect("equal")
-    plt.pause(dt)
-    ax.cla()
-    
-    
+        
+        plt.title("dt: "+str(round(t,2)))
+        ax.set_aspect("equal")
+        plt.pause(dt)
+        ax.cla()
+        
+        
 
-    for i in range(10):
-        b1.atract(b2)
-        #b1.atract(b3)
-        #b2.atract(b3)
+        for i in range(10):
+            b1.atract(b2)
+            #b1.atract(b3)
+            #b2.atract(b3)
 
 
-        b1.update()
-        b2.update()
-        #b3.update()
-        t += dt
+            b1.update()
+            b2.update()
+            #b3.update()
+            t += dt
 
-    
-    
-    
+        
+        
+        
 
-plt.title("3 body problem with leapfrog method: t = "+str(round(t,2)))
-plt.show()
+    plt.title("3 body problem with leapfrog method: t = "+str(round(t,2)))
+    plt.show()
