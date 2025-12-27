@@ -110,6 +110,18 @@ def second_derivative(field, axis):
             )
         return zero_field
    
+
+def flux(field,vel_u,vel_v):
+    flux = np.zeros_like(field)
+    flux[1:-1, 1:-1]  += (
+        ( (vel_u[:-2,1:-1]*field[:-2,1:-1]) -
+        (vel_u[2:,1:-1]*field[2:,1:-1]) )/2*dx +
+        
+        ((vel_v[1:-1,:-2]*field[1:-1,:-2]) -
+         ( vel_v[1:-1,2:]*field[1:-1,2:]))/2*dx
+        )
+    return flux
+
 #density[10,10] = base_density +2
 
 #velocity_u += (np.random.random(density.shape)-0.5)*1
@@ -222,53 +234,7 @@ def solve(n):
         
         
         
-       
-        u_flux = np.zeros_like(velocity_u)
-        u_flux[1:-1, 1:-1]  += (
-        ( (velocity_u[:-2,1:-1]*velocity_u[:-2,1:-1]) -
-        (velocity_u[2:,1:-1]*velocity_u[2:,1:-1]) ) +
-        
-        ((velocity_v[1:-1,:-2]*velocity_u[1:-1,:-2]) -
-         ( velocity_v[1:-1,2:]*velocity_u[1:-1,2:]))
-        )
-
-        v_flux = np.zeros_like(velocity_v)
-        v_flux[1:-1, 1:-1]  += (
-        ( (velocity_u[:-2,1:-1]*velocity_v[:-2,1:-1]) -
-        (velocity_u[2:,1:-1]*velocity_v[2:,1:-1]) ) +
-        
-        ((velocity_v[1:-1,:-2]*velocity_v[1:-1,:-2]) -
-         ( velocity_v[1:-1,2:]*velocity_v[1:-1,2:]))
-        )
-
-        inkflux = np.zeros_like(velocity_u)
-        inkflux[1:-1, 1:-1]  += (
-        ( (velocity_u[:-2,1:-1]*ink[:-2,1:-1]) -
-        (velocity_u[2:,1:-1]*ink[2:,1:-1]) ) +
-        
-        ((velocity_v[1:-1,:-2]*ink[1:-1,:-2]) -
-         ( velocity_v[1:-1,2:]*ink[1:-1,2:]))
-        )
-
-        heat_flux = np.zeros_like(velocity_u)
-        heat_flux[1:-1, 1:-1]  += (
-        ( (velocity_u[:-2,1:-1]*heat[:-2,1:-1]) -
-        (velocity_u[2:,1:-1]*heat[2:,1:-1]) ) +
-        
-        ((velocity_v[1:-1,:-2]*heat[1:-1,:-2]) -
-         ( velocity_v[1:-1,2:]*heat[1:-1,2:]))
-        )
-
-
-        density_flux = np.zeros_like(velocity_u)
-        density_flux[1:-1, 1:-1]  += (
-        ( (velocity_u[:-2,1:-1]*density[:-2,1:-1]) -
-        (velocity_u[2:,1:-1]*density[2:,1:-1]) ) +
-        
-        ((velocity_v[1:-1,:-2]*density[1:-1,:-2]) -
-         ( velocity_v[1:-1,2:]*density[1:-1,2:]))
-        )
-
+      
 
         
         
@@ -277,31 +243,31 @@ def solve(n):
         
 
         dut = (
-           u_flux - 
+           flux(velocity_u,velocity_u,velocity_v) - 
             sound_speed*ddx  + (d2ux+d2uy)*vd 
             
             )
         
         
         dvt = (
-           v_flux - 
+           flux(velocity_v,velocity_u,velocity_v) - 
             sound_speed*ddy  + (d2vx+d2vy)*vd 
             
             )
         
         ddt = (
-           density_flux +
+            flux(density,velocity_u,velocity_v)+
             (d2dx + d2dy)*dd
             )
         
         dit = (
-           inkflux +
+           flux(ink,velocity_u,velocity_v) +
             (d2ix + d2iy)*id
             )
         
         
         dtt = (
-           heat_flux +
+           flux(heat,velocity_u,velocity_v) +
             (d2tx + d2ty)*id
             )
         
@@ -337,29 +303,29 @@ def solve(n):
         heat[:,:] = np.clip(heat,-2,2)
        
         # Left boundary:
-        velocity_u[:, 0] = 0
+        velocity_u[:, 0] = velocity_u[:,1]
         velocity_v[:, 0] = 0
         density[:, 0] = density[:, 1] 
         heat[:, 0] = 0
         ink[:, 0] = ink[:, 1]
 
         #Right boundary:
-        velocity_u[:, -1] = 0
-        velocity_v[:, -1] = 0 
-        density[:, -1] = density[1, -2] 
+        velocity_u[:, -1] = velocity_u[:, -2] 
+        velocity_v[:, -1] = 0
+        density[:, -1] = density[:, -2] 
         heat[:, -1] = 0
         ink[:, -1] = ink[:, -2]
 
         # top boundary:
-        velocity_u[0, :] =  0
-        velocity_v[0, :] = 0
+        velocity_u[0, :] =  0 
+        velocity_v[0, :] = velocity_v[1, :]
         density[0, :] = density[1, :] 
         heat[0, :] = 0
         ink[0, :] = ink[1, :]
 
         #bottom boundaries
         velocity_u[-1, :] = 0
-        velocity_v[-1, :] = 0
+        velocity_v[-1, :] = velocity_v[-2, :]
         density[-1, :] = density[-2, :]
         heat[-1, :] = 0
         ink[-1, :] = ink[-2, :]
