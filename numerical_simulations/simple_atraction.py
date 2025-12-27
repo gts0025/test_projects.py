@@ -6,8 +6,13 @@ k = 100
 
 class Body:
     def __init__(self):
-        self.pos = 3*(np.random.random(2) - np.array([0.5,0.5]))
-        self.lpos = self.pos + 1*(np.random.random(2)- np.array([0.5,0.5]))*dt
+
+        x = (np.random.random(2) - 0.5)*2
+        s = (np.random.random(2) - 0.5)*dt*2
+
+        self.pos = x
+        self.lpos = x + s
+
         self.f = 0
         self.mass = 1
         self.line_plot = [[],[]] 
@@ -37,14 +42,14 @@ class Body:
 
     
     def atract(self,target):
-        r = 1
+        r = 0.01
         dx = target.pos-self.pos
         d = np.linalg.norm(dx)
-        n = dx/(d+1e-9)
-        f = (self.mass*target.mass*g*n)/(d**2 + 1e-3)
+        n = dx/(d+1e-5)
+        f = (self.mass*target.mass*g*n)/(d**2 + 2e-9)
         if d < r:
             corection = -k*((d-r)*n)/2
-            #f += corection
+            f += corection
         
         self.f -= f
         target.f += f
@@ -63,23 +68,30 @@ if __name__  == "__main__":
     b3_line = [[],[]]
     t = 0
 
+    time_series = []
+    distance = []
+
     fig,ax = plt.subplots(1,1)
 
     for i in range(10000):
         
+        distance.append(np.linalg.norm(b1.pos-b2.pos))
+        time_series.append(t)
+
         b1.add_plot()
         b2.add_plot()
         #b3.add_plot()
 
         b1.plot(ax)
         b2.plot(ax)
-        b1.scatter(ax)
-        b2.scatter(ax)
+        #b1.scatter(ax)
+        #b2.scatter(ax)
         #b3.show_plot()
 
         
         plt.title("dt: "+str(round(t,2)))
         ax.set_aspect("equal")
+        #ax.plot(time_series,distance)
         plt.pause(dt)
         ax.cla()
         

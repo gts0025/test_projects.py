@@ -19,15 +19,15 @@ b = y
 
 
 
-h[75:125] += 0.4
+h[90:110] += 0.4
 #h[20:30] += 0.4
 
 volume = h.sum()
 
 
 k = 1
-d = 0.9
-dt = 1
+d = 0.3
+dt = 0.1
 
 def derivative(field):
     zero = np.zeros_like(field)
@@ -52,14 +52,14 @@ def step(substeps):
     p = h**k
     
     #solve
-    
-    dht = -(derivative(u*p) - second_derivative(h)*d)
-    dut = -(derivative(p)/h - second_derivative(u)*d)
-    u += dut*(dt/substeps)
-    h += dht*(dt/substeps)
+    for i in range(substeps):
+        dht = -(derivative(u*p) - second_derivative(h)*d)
+        dut = -(derivative(p)/h - second_derivative(u)*d)
+        u += dut*(dt/substeps)
+        h += dht*(dt/substeps)
 
-    # volume corection:
-    h *= (volume / h.sum())
+        # volume corection:
+        h *= (volume / h.sum())
 
 
 def solve(steps,substeps):
@@ -81,4 +81,4 @@ def solve(steps,substeps):
         plt.clf()
         
        
-solve(700,200)
+solve(700,10)
