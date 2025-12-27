@@ -16,54 +16,68 @@ im_data = np.array(img).astype(np.float32) / 255.0
 bright = np.array(im_data)
 bright[bright < 0.5] = 0
 bright[bright >= 0.5] = 1
+
 bright = np.zeros([100,100])
-bd = 1 # base density
-max_speed = 1.2
-bs = 2
+
+
+
+#bright = np.zeros([50,50])
+base_density = 1 # base densit
+max_speed = 1
+density_range = 1
 mask = np.zeros_like(bright)
 
-
+sound_speed = 0.7
 dt = 0.1
 vd = 0.1
-dd = 0.0
-td = 0.03
+dd = 0.3
+td = 0.1
 id = 0.01
 
 dx = 1
 t_buoyancy = -0.01
-substeps = 50
+substeps = 20
 gravity = 0.0
-g = 0.000
+g = 0.00
 
 #derivatves 
 
 #restriction 
 
-vr = (-max_speed,max_speed)
-dr = (bd-3,bd+3) 
+velocity_region = (-max_speed,max_speed)
+density_region = (base_density-density_range,base_density+density_range) 
 
 #fields
 
 
 # Define the curve: centered horizontally
 
-density = np.ones_like(bright)*bd
+density = np.ones_like(bright)*base_density
 velocity_u = np.ones_like(bright)*0
 velocity_v = np.ones_like(bright)*0
+
+x = np.arange(bright.shape[0])
+y = np.arange(bright.shape[1])
+x, y= np.meshgrid(x,y)
+
+
+walls = np.ones_like(bright)*0
+#walls[:30,20:30] = 1
+#walls[35:,20:30] = 1
+
+
+walls = walls>0
+        
 ink = np.zeros_like(bright)
 heat = np.zeros_like(bright)*-2
 
 
-figure,ax = plt.subplots(1,1,figsize=(5,5))
-ax.set_aspect('equal')
+figure,ax = plt.subplots(1,1,figsize=(10,5))
+#ax.set_aspect('equal')
 #ax.axis("off")
 
-implot =  plt.imshow(
-    density, 
-    cmap="twilight",
-    vmin=-2,
-    vmax=2
-    )
+
+
 
 
 def derivative(field, axis):
@@ -96,7 +110,7 @@ def second_derivative(field, axis):
             )
         return zero_field
    
-#density[10,10] = bd +2
+#density[10,10] = base_density +2
 
 #velocity_u += (np.random.random(density.shape)-0.5)*1
 #velocity_v += (np.random.random(density.shape)-0.5)*1
@@ -117,6 +131,10 @@ for i in range(bright.shape[0]):
 
 mask = np.array(mask)
 #ink[:50,:50] = 2
+
+#density[:,25:] = 0.3
+#ink[:,:25] = 1
+
 def solve(n):
  
     global velocity_v
@@ -138,7 +156,7 @@ def solve(n):
         #dbx = abs(derivative(bright,0))>0.1
         #dby = abs(derivative(bright,1))>0.1
 
-        #density[bright < 0.2] = bd
+        #density[bright < 0.2] = base_density
         #ink[:,0] = mask
         #velocity_u[dbx]*=0
         #velocity_v[dby]*=0
@@ -147,33 +165,30 @@ def solve(n):
         if(n < 400):
             #velocity_v[35:50,0:5] = 0
             #velocity_u[35:50,0:5] = 0
-            #density[35:50,0:5] = bd
+            #density[35:50,0:5] = base_density
             #ink[35:50,0:5] = 2
         
             #velocity_v[45:50,0:5] = 1
-            #density[45:50,0:5] = bd
+            #density[45:50,0:5] = base_density
             #ink[45:50,0:5] = 2
             pass
         
-        #heat[-2:,30:50] = 2
-        ink[-2:,35:45] += 0.01
-        velocity_u[-2:,35:45] = -0.5
-        density[-2:,35:45] = bd*1.0
-        #heat -= (heat-(-0.3))*0.0001
         
+        #convection test
+        heat[-2:,30:50] = 2
+        
+        #advection test
+        #ink[-2:,35:45] += 0.01
+        
+        velocity_u += gravity*dt*density
+        
+
+        
+
 
         
         #heat[-2:,3:] = 2
 
-        gravity = density.copy()
-
-        for i in range(40):
-            d2gx = second_derivative(gravity,0)
-            d2gy = second_derivative(gravity,1)
-            gravity -= (d2gx+d2gy)*0.7
-
-        dgx = derivative(gravity,0)
-        dgy = derivative(gravity,1)
 
         dux = derivative(velocity_u, 0)
         duy = derivative(velocity_u, 1)
@@ -197,46 +212,109 @@ def solve(n):
         d2ix = second_derivative(ink, 0)
         d2iy = second_derivative(ink, 1)
 
+
+        
         dtx = derivative(heat, 0)
         dty = derivative(heat, 1)
         d2tx = second_derivative(heat, 0)
         d2ty = second_derivative(heat, 1)
 
-
         
-        ddt = -(
-            dux*density + dvy*density +
-            velocity_u*ddx + velocity_v*ddy -
-            (d2dx+d2dy)*dd
+        
+        
+       
+        u_flux = np.zeros_like(velocity_u)
+        u_flux[1:-1, 1:-1]  += (
+        ( (velocity_u[:-2,1:-1]*velocity_u[:-2,1:-1]) -
+        (velocity_u[2:,1:-1]*velocity_u[2:,1:-1]) ) +
+        
+        ((velocity_v[1:-1,:-2]*velocity_u[1:-1,:-2]) -
+         ( velocity_v[1:-1,2:]*velocity_u[1:-1,2:]))
         )
+
+        v_flux = np.zeros_like(velocity_v)
+        v_flux[1:-1, 1:-1]  += (
+        ( (velocity_u[:-2,1:-1]*velocity_v[:-2,1:-1]) -
+        (velocity_u[2:,1:-1]*velocity_v[2:,1:-1]) ) +
+        
+        ((velocity_v[1:-1,:-2]*velocity_v[1:-1,:-2]) -
+         ( velocity_v[1:-1,2:]*velocity_v[1:-1,2:]))
+        )
+
+        inkflux = np.zeros_like(velocity_u)
+        inkflux[1:-1, 1:-1]  += (
+        ( (velocity_u[:-2,1:-1]*ink[:-2,1:-1]) -
+        (velocity_u[2:,1:-1]*ink[2:,1:-1]) ) +
+        
+        ((velocity_v[1:-1,:-2]*ink[1:-1,:-2]) -
+         ( velocity_v[1:-1,2:]*ink[1:-1,2:]))
+        )
+
+        heat_flux = np.zeros_like(velocity_u)
+        heat_flux[1:-1, 1:-1]  += (
+        ( (velocity_u[:-2,1:-1]*heat[:-2,1:-1]) -
+        (velocity_u[2:,1:-1]*heat[2:,1:-1]) ) +
+        
+        ((velocity_v[1:-1,:-2]*heat[1:-1,:-2]) -
+         ( velocity_v[1:-1,2:]*heat[1:-1,2:]))
+        )
+
+
+        density_flux = np.zeros_like(velocity_u)
+        density_flux[1:-1, 1:-1]  += (
+        ( (velocity_u[:-2,1:-1]*density[:-2,1:-1]) -
+        (velocity_u[2:,1:-1]*density[2:,1:-1]) ) +
+        
+        ((velocity_v[1:-1,:-2]*density[1:-1,:-2]) -
+         ( velocity_v[1:-1,2:]*density[1:-1,2:]))
+        )
+
+
+        
+        
+       
+        
         
 
-        dut = -(
-            dux*velocity_u + duy*velocity_v + 
-            ddx + g*dgx - (d2ux+d2uy)*vd 
+        dut = (
+           u_flux - 
+            sound_speed*ddx  + (d2ux+d2uy)*vd 
             
             )
         
         
-        dvt = -(
-            dvx*velocity_u + dvy*velocity_v +
-            ddy + g*dgy - (d2vx+d2vy)*vd 
+        dvt = (
+           v_flux - 
+            sound_speed*ddy  + (d2vx+d2vy)*vd 
+            
             )
         
+        ddt = (
+           density_flux +
+            (d2dx + d2dy)*dd
+            )
         
-
-        dit = -(
-            dix*velocity_u+diy*velocity_v-
+        dit = (
+           inkflux +
             (d2ix + d2iy)*id
             )
         
         
-        dtt = -(
-            dtx*velocity_u +  dty*velocity_v-
-            (d2tx + d2ty)*td
+        dtt = (
+           heat_flux +
+            (d2tx + d2ty)*id
             )
         
-        density += (ddt*dt)
+        velocity_v[walls>0] = 0
+        velocity_u[walls>0] = 0
+        #ddt[walls>0] = 0
+        #density[walls == 3] = density[walls == 3]  
+       
+
+       
+        density += ddt*dt
+
+       
         velocity_u += dut*dt
         velocity_v += dvt*dt
         
@@ -251,37 +329,37 @@ def solve(n):
 
         
         #constrains
-        velocity_u[:,:] = np.clip(velocity_u,vr[0],vr[1])
-        velocity_v[:,:] = np.clip(velocity_v,vr[0],vr[1])
+        velocity_u[:,:] = np.clip(velocity_u,velocity_region[0],velocity_region[1])
+        velocity_v[:,:] = np.clip(velocity_v,velocity_region[0],velocity_region[1])
 
-        density[:,:] = np.clip(density,dr[0],dr[1])
+        density[:,:] = np.clip(density,density_region[0],density_region[1])
         ink[:,:] = np.clip(ink,0,2)
         heat[:,:] = np.clip(heat,-2,2)
        
         # Left boundary:
-        velocity_u[:, 0] = velocity_u[:, 1]
+        velocity_u[:, 0] = 0
         velocity_v[:, 0] = 0
-        density[:, 0] = bd
+        density[:, 0] = density[:, 1] 
         heat[:, 0] = 0
         ink[:, 0] = ink[:, 1]
 
         #Right boundary:
-        velocity_u[:, -1] = velocity_u[:, -2]
-        velocity_v[:, -1] = 0
-        density[:, -1] = bd
+        velocity_u[:, -1] = 0
+        velocity_v[:, -1] = 0 
+        density[:, -1] = density[1, -2] 
         heat[:, -1] = 0
         ink[:, -1] = ink[:, -2]
 
         # top boundary:
-        velocity_u[0, :] = 0
-        velocity_v[0, :] = velocity_v[1,:]
+        velocity_u[0, :] =  0
+        velocity_v[0, :] = 0
         density[0, :] = density[1, :] 
         heat[0, :] = 0
         ink[0, :] = ink[1, :]
 
         #bottom boundaries
         velocity_u[-1, :] = 0
-        velocity_v[-1, :] = velocity_v[-2,:]
+        velocity_v[-1, :] = 0
         density[-1, :] = density[-2, :]
         heat[-1, :] = 0
         ink[-1, :] = ink[-2, :]
@@ -290,20 +368,33 @@ def solve(n):
     mag = np.sqrt(velocity_u**2 + velocity_v**2) 
     curl = (duy - dvx)*10
     div = (dux + dvy)*10
-    deviation = (density - density.mean())**2
-    implot.set_data(curl)
+
+
+    deviation = np.sqrt(d2dx**2 + d2dy**2)
+    
+    integrated_along = (velocity_v.sum(axis=1)*(dx))/(bright.shape[0])
+    integrated_across = (velocity_v.sum(axis=0)*(dx))/(bright.shape[1])
+    #integrated_ink = (ink.sum(axis=0)*(dx))/(bright.shape[0])
+
+    plt.cla()
+    plt.imshow(heat,vmax = 1,vmin=-1,cmap="twilight")
+    #plt.quiver(x,y,velocity_v,-velocity_u, color="white")
+    #plt.plot(integrated_across)
+    #plt.plot(integrated_ink)
 
     
-     
-path = "left_inlet"
-gif_path = path + '.gif'
-mp4_path = path + '.mp4'
-writer = animation.PillowWriter(fps=30,bitrate=400)
-print("running")
-data = animation.FuncAnimation(figure,solve, frames = 1800, interval = 1)
-plt.show()
-print("saving")
-#data.save(gif_path,writer = writer)
-print("done")
-from gif_to_mp4 import Converter
-#Converter(gif_path,mp4_path)
+
+
+if __name__ == "__main__":
+    path = "left_inlet"
+    gif_path = path + '.gif'
+    mp4_path = path + '.mp4'
+    writer = animation.PillowWriter(fps=30,bitrate=400)
+    print("running")
+    data = animation.FuncAnimation(figure,solve, frames = 1800, interval = 1)
+    plt.show()
+    print("saving")
+    #data.save(gif_path,writer = writer)
+    print("done")
+    from gif_to_mp4 import Converter
+    #Converter(gif_path,mp4_path)
