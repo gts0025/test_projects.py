@@ -8,12 +8,12 @@ size = 800
 lenght = 100
 
 k = 0.02
-d = 0.001
+d = 0.1
 fps = 120
 dt = 0.1
 g = 0.01
 boxes = []
-initial = 0.001
+initial = 0.01
 for i in range(0):
     box = [[50+randint(-30,30),-100],[0,0]]
     boxes.append(box)
@@ -45,23 +45,18 @@ while running:
         line[0][0] = 0
         line[lenght-1][0] = 0
         
-        average = 0 
-        if 0 <= i-1:
-            average += line[i-1][0]
+    
+        if 0 <= i < lenght-1:
+            d2hx = (line[i-1][0] + line[i+1][0] - 2*line[i][0])/2
+            d2sx = (line[i-1][1] + line[i+1][1] - 2*line[i][1])/2
         
-        if i+2 < lenght:
-             average += line[i+1][0]
+       
         
-        diff = average-line[i][0]
-        diff *= 0.5
-  
-        line[i][1] -= diff*k*dt
-        line[i][1] += line[i][0]*k*dt
-        
-        line[i][1] -= line[i][1]*d*dt
-        
+        line[i][1] += d2hx*k*dt
+        line[i][1] += d2sx*d*dt
+
         #damping
-        line[i][0] -= line[i][1]*dt
+        line[i][0] += line[i][1]*dt
         
         y = round(200+((line[i][0]/initial)*100))
         
