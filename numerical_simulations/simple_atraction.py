@@ -2,13 +2,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 dt = 0.001
 g = -1
+bottom = 1e-9
 k = 100
 
 class Body:
     def __init__(self):
 
         x = (np.random.random(2) - 0.5)*2
-        s = (np.random.random(2) - 0.5)*dt*2
+        s = (np.random.random(2) - 0.5)*dt
 
         self.pos = x
         self.lpos = x + s
@@ -42,14 +43,14 @@ class Body:
 
     
     def atract(self,target):
-        r = 0.01
+        r = 0.1
         dx = target.pos-self.pos
         d = np.linalg.norm(dx)
-        n = dx/(d+1e-5)
-        f = (self.mass*target.mass*g*n)/(d**2 + 2e-9)
+        n = dx/(d+bottom)
+        f = (self.mass*target.mass*g*n)/(d*d + bottom)
         if d < r:
             corection = -k*((d-r)*n)/2
-            f += corection
+            f = corection
         
         self.f -= f
         target.f += f

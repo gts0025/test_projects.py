@@ -1,0 +1,51 @@
+
+import matplotlib.pyplot as plt
+fat = 1.0
+fat_consum = 0.2
+fat_conduction = 0.7
+height = 0.1
+fat_energy = 0.7
+
+temp = 0.0
+temp_decay = 0.001
+
+fire = 0.5
+fire_decay = 0.03
+dt = 0.3
+t = 0
+time_line = []
+temp_line = []
+fat_line = []
+fire_line = []
+while t < 30:
+  t += dt
+  
+  if temp > 0.3:
+    dffat = -temp*fat*fat_consum
+  else:dffat = 0
+  dtemp = (fire-temp)*fat_conduction - temp_decay*temp
+  dfire = -dffat*fat_energy - fire*fire_decay
+  time_line.append(t)
+  temp_line.append(temp)
+  fat_line.append(fat)
+  fire_line.append(fire)
+  
+  
+  plt.cla()
+  plt.title("meat combustion model")
+
+  plt.ylim(0,1.5)
+  plt.plot(time_line,temp_line,label = "fat temperature")
+  plt.plot(time_line,fat_line,label = "fat amout")
+  plt.plot(time_line,fire_line,label = "fire_height")
+  plt.legend()
+
+  plt.pause(0.01)
+  temp += dtemp*dt
+  fire += dfire*dt
+  fat += dffat*dt
+plt.show()
+  
+  #print("fire: ",fire)
+  #print("temp: ",temp)
+  #print("fat: ",fat)

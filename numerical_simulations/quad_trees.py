@@ -31,7 +31,7 @@ class Node():
 
     def add(self,body):
         if self.enclose(body):
-            if len(self.data) < 2:
+            if len(self.data) < 1:
                 self.data.append(body)
             else:
                 if not self.basket: 
@@ -43,14 +43,26 @@ class Node():
     def calc_center_mass(self):
 
         center = np.zeros(3)
-        for i in self.data:
-            center[:2] += i.pos
-            center[2] += i.mass
+        
+        
+        if not(self.data):
+            self.center_mass = Body()
+            self.center_mass.pos = np.array([
+                self.quad[0] + self.quad[2]/2,
+                self.quad[1] + self.quad[3]/2
+                ])
+            self.center_mass.mass = 0
+            return
+            
+        else: 
+            for i in self.data:
+                center[:2] += i.pos*i.mass
+                center[2] += i.mass
 
         if self.basket:
             for i in self.basket:
                 i.calc_center_mass()
-                center[:2] += i.center_mass.pos
+                center[:2] += i.center_mass.pos*i.center_mass.mass
                 center[2] += i.center_mass.mass
 
         center_body = Body()
@@ -85,13 +97,13 @@ class Node():
         
         self.basket = [c1,c2,c3,c4]
 
-    def node_atract(self,body:Body):
-        if self.enclose(body):
+    def node_atract(self,body:Body,omega):
+        if self.enclose(body) :
             for i in self.data:
                 if i != body:
                     body.atract(i)
             for i in self.basket:
-                i.node_atract(body)
+                i.node_atract(body,omega)
         else:
             body.atract(self.center_mass)
             
