@@ -118,8 +118,11 @@ def viz_data():
 
 
 def viz_freq(sound,ftime):
-    frequency = fourier.forward(voice,np.linspace(0,ftime,voice.shape[0]),[0,1000],1000)
+    frequency = fourier.forward(sound,np.linspace(0,ftime,sound.shape[0]),[0,1000],100)
+    print("forward pass done")
+
     frequency = np.array(frequency)
+
 
     plt.title("fourier series")
     plt.plot(frequency[:,0],np.sqrt(frequency[:,1]**2 + frequency[:,2]**2))
@@ -128,7 +131,7 @@ def viz_freq(sound,ftime):
     plt.show()
 
 start = time.time()
-viz_sumualtion(1000,uc, up, c, dt)
+#viz_sumualtion(1000,uc, up, c, dt)
 sound = get_sound(uc, up, c, dt)
 
 #plt.plot(data)
@@ -136,9 +139,15 @@ sound = get_sound(uc, up, c, dt)
 
 #plt.show()
 end = time.time()
-#viz_freq(sound,ftime)
+print("run time in seconds: ",end-start)
+
+viz_freq(sound,ftime)
 
 
-print(end-start)
+sdvc.play(voice,sps)
+sdvc.wait()
+
 sdvc.play(sound,sps)
 sdvc.wait()
+
+
