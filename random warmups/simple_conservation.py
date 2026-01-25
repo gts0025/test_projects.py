@@ -19,6 +19,7 @@ while t < 30:
   plt.cla()
   plt.title("meat combustion model")
 
+  u = (px + x_axis[0])/axis[0] 
   plt.xlim(-1,1)
   plt.plot(x_axis,potential)
   plt.plot(px)
