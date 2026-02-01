@@ -10,6 +10,7 @@ from scipy.io import wavfile
 import fourier
 import sounddevice as sdvc
 import time
+from fieldTools import second_derivative,fullBoundary2d
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
