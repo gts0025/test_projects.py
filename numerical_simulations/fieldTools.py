@@ -40,6 +40,7 @@ def second_derivative(field, axis,dx = 1):
             (field[1:-1, 2:] + field[1:-1, :-2] - 2 * field[1:-1, 1:-1]) / dx**2
             )
         return zero_field
+    
     elif axis == 2:
         return (
             second_derivative(field, 0,dx)+
