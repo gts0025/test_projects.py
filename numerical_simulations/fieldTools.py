@@ -113,10 +113,11 @@ def random_smooth_field(field,n,c):
 
 def diffuse(field,c = 1,dt = 0.01,dx = 2):
 
-    d2x = ((field[2:,1:-1]+field[:-2,1:-1])-2*field[1:-1,1:-1])/dx**2
-    d2y = ((field[1:-1,2:]+field[1:-1,:-2])-2*field[1:-1,1:-1])/dx**2
+    d2x = second_derivative(field,0,dx)
+    d2y =  second_derivative(field,1,dx)
 
     field[1:-1,1:-1] += (d2x+d2y)*c*dt
+    return field
 
 
 def fitzhug_nagumo_react(u,w ,e = 1,b = 1,y = 1,dt = 0.1):
