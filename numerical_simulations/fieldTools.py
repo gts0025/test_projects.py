@@ -20,11 +20,12 @@ def derivative(field, axis,dx = 1):
            )
        
        return zero_field
-    else:
+    elif axis == 2:
         return (
             derivative(field, 0,dx)+
             derivative(field, 1,dx)
         )
+    
     
 def second_derivative(field, axis,dx = 1):
     zero_field = np.zeros_like(field)
@@ -39,7 +40,7 @@ def second_derivative(field, axis,dx = 1):
             (field[1:-1, 2:] + field[1:-1, :-2] - 2 * field[1:-1, 1:-1]) / dx**2
             )
         return zero_field
-    else:
+    elif axis == 2:
         return (
             second_derivative(field, 0,dx)+
             second_derivative(field, 1,dx)
