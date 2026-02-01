@@ -20,6 +20,11 @@ def derivative(field, axis,dx = 1):
            )
        
        return zero_field
+    else:
+        return (
+            derivative(field, 0,dx)+
+            derivative(field, 1,dx)
+        )
     
 def second_derivative(field, axis,dx = 1):
     zero_field = np.zeros_like(field)
@@ -34,6 +39,12 @@ def second_derivative(field, axis,dx = 1):
             (field[1:-1, 2:] + field[1:-1, :-2] - 2 * field[1:-1, 1:-1]) / dx**2
             )
         return zero_field
+    else:
+        return (
+            second_derivative(field, 0,dx)+
+            second_derivative(field, 1,dx)
+        )
+    
    
 def fullBoundary2d(field,t):
     match t:
@@ -110,14 +121,6 @@ def random_smooth_field(field,n,c):
     field[noise < 0.49] = c
     return field
 
-
-def diffuse(field,c = 1,dt = 0.01,dx = 2):
-
-    d2x = second_derivative(field,0,dx)
-    d2y =  second_derivative(field,1,dx)
-
-    field[1:-1,1:-1] += (d2x+d2y)*c*dt
-    return field
 
 
 def fitzhug_nagumo_react(u,w ,e = 1,b = 1,y = 1,dt = 0.1):
