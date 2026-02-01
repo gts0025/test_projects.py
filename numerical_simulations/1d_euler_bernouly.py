@@ -1,38 +1,46 @@
 
 # this file uses 1d wave equation to 
-
+import fourier
 
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import sounddevice as sdvc
 
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 #initial gaussioan disturbance
-x = np.linspace(0,10,20)
+h_range = 1
+x = np.linspace(-10,10,100)
 space = ((x/10)**2)*0.3
-#space = np.exp(-x**2)
-space = np.zeros_like(x)
+space = np.exp(-x**2)*(h_range)/2
+#space = np.zeros_like(x)
 up = space
 uc = space
 
-c = 1e-2
 
-
-d = 1e-6 #viscosity
-g = 9.8
-dx = x[1]-x[0]
-dt = 1e-2
 
 """
- 
 c*dt/dx < 1
-
-c*dt < dx
-dt < dx/c
+c*dt/dx < 1
+dt/dx < 1/c
+dt = dx/c
 
 """
+
+c = 30000
+
+d = 0.001 #viscosity
+g = 0.0
+dx = 1
+
+dt = (1/c)*0.1
+
+
+steps = 1000
+substeps = 10
+
 
 
 data = [] # final sound data 
@@ -73,21 +81,21 @@ def first(data,n = 1 ):
 def wave_step(uc, up, c, dt):
     d2ux = second(uc)
 
-    un  = (2*uc - up +  (c**2)*(d2ux)*(dt**2)  - ((uc-up)/dt)*d) 
+    un  = (2*uc - up +  (c**2)*(d2ux)*(dt**2)  - ((uc-up))*d) 
     up = uc
     uc = un
 
     un *= 1-(d*dt)
     uc[:1] = 0
-    uc[-1] = uc[-2]
+    uc[-1] = 0
     return uc,up
 
 
 
 def bending_step(uc, up, c, dt):
-    d2ux = -second(uc,2)
+    d4ux = second(uc,2)
 
-    un  = (2*uc - up +  (d2ux)*(dt**2) - ((uc-up)/dt)*c -g*dt**2) 
+    un  = (2*uc - up - (c**2*d4ux*(dt**2)) - ((uc-up)/dt)*d*dt**2 -g*dt**2) 
    
     up = uc
     uc = un
@@ -95,8 +103,9 @@ def bending_step(uc, up, c, dt):
     # zero height, zero slope condition
     uc[0] = 0 
     uc[1] = 0
-    #uc[1] = 0
+    
     #uc[-1] = 0
+    #uc[-2] = 0
 
     #zero second derivative  
     uc[-1] = uc[-2] + (uc[-2]-uc[-3])
@@ -116,16 +125,15 @@ def energy(uc, up, c,dt):
 
 data = []
 
-def viz_sumualtion(iterations,uc, up, c, dt):
+def viz_sumualtion(steps,substeps, uc, up, c, dt):
     
-    for i in range(iterations):
+    for i in range(steps):
     
-        plt.cla()
-        plt.title(f"1d euler-bernouly equation. dt:{i*dt:.2e}")
         
-        for j in range(10):
-            uc,up = bending_step(uc, up, c, dt)
-            #uc,up = wave_step(uc, up, c, dt)
+        
+        for j in range(substeps):
+            #uc,up = bending_step(uc, up, c, dt)
+            uc,up = wave_step(uc, up, c, dt)
             
            
 
@@ -141,13 +149,47 @@ def viz_sumualtion(iterations,uc, up, c, dt):
 
         #simulation part
 
-        h_range = 10
+        plt.cla()
+        plt.title(f"1d euler-bernouly equation. step: {i*substeps}")
         plt.plot(x,uc)
 
 
         plt.ylim(-h_range,h_range)
         plt.pause(1e-10)
         plt.cla()
+
+
+
+def get_sound(steps, uc, up, c, dt):
+    data = []
+    for i in range(steps):
+        percent = round((i/steps)*100,3)
+        if percent%10 == 0:
+            print(round(percent))
+ 
+        uc,up = bending_step(uc, up, c, dt)
+        #uc,up = wave_step(uc, up, c, dt)
+        
+        
+
+        data.append(uc[uc.shape[0]//2])
+    data = np.array(data)
+    data = data/(np.max(np.abs(data)))
+    return np.int16(np.abs(data)*400)
+
+def viz_freq(sound,ftime,frequency_range,frequency_amount):
+    frequency = fourier.forward(sound,np.linspace(0,ftime,sound.shape[0]),frequency_range,frequency_amount)
+    print("forward pass done")
+
+    frequency = np.array(frequency)
+
+
+    plt.title("fourier series")
+    plt.plot(frequency[:,0],np.sqrt(frequency[:,1]**2 + frequency[:,2]**2))
+    plt.xlabel("frequencies")
+    plt.ylabel("amplitudes")
+    plt.show()
+
         
 
 et = []
@@ -155,4 +197,17 @@ displacemet = 0
 speed = 0
 uc[8:12] = displacemet
 up[8:12] = displacemet+speed*dt
-viz_sumualtion(1000,uc, up, c, dt)
+
+#viz_sumualtion(steps,substeps,uc, up, c, dt)
+
+
+sps = 1/dt
+steps = int(sps*5)
+data = get_sound(steps,uc, up, c, dt)
+
+
+
+viz_freq(data,steps*dt,[10,400],800)
+for i in range(100):
+    sdvc.play(data,int(sps))
+    sdvc.wait()
