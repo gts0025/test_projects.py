@@ -8,7 +8,7 @@ k = 100
 class Body:
     def __init__(self):
 
-        x = (np.random.random(2) - 0.5)*2
+        x = (np.random.random(2) - 0.5)*5
         s = (np.random.random(2) - 0.5)*dt
 
         self.pos = x
@@ -32,6 +32,7 @@ class Body:
         self.f = 0
 
     def add_plot(self):
+
         self.line_plot[0].append(self.pos[0])
         self.line_plot[1].append(self.pos[1])
 
@@ -46,11 +47,11 @@ class Body:
         r = 0.1
         dx = target.pos-self.pos
         d = np.linalg.norm(dx)
-        n = dx/(d+bottom)
-        f = (self.mass*target.mass*g*n)/(d*d + bottom)
+        n = dx/(d+r)
+        f = (self.mass*target.mass*g*n)/(d*d + r*r)
         if d < r:
             corection = -k*((d-r)*n)/2
-            f = corection
+            f += corection
         
         self.f -= f
         target.f += f
@@ -63,6 +64,7 @@ if __name__  == "__main__":
 
     b1 = Body()
     b2 = Body()
+    b2.mass = 100
     b3 = Body()
     b1_line = [[],[]]
     b2_line = [[],[]]
