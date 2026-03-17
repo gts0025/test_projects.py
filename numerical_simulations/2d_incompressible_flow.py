@@ -1,5 +1,16 @@
+#2d gas equation 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import animation
+from PIL import Image
+import os
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+plt.style.use('dark_background')
+
+#constants
+
+
 grid = np.zeros([100,100,2])
 ink = np.ones_like(grid[:,:,0])*0
 heat = np.ones_like(grid[:,:,0])*0
@@ -8,19 +19,20 @@ heat = np.ones_like(grid[:,:,0])*0
 
 
 dt = 0.1
+
 rho = 0.01
 ink_rho = 0.1
-density = 0.25
+heat_rho = 0.1
+
+density = 1
+buoyancy = 0.1
 
 
 
 
 def get_div(grid):
-    #div_x = grid[2:,1:-1,0]-grid[:-2,1:-1,0]
-    #div_y = grid[1:-1,2:,1]-grid[1:-1,:-2,1]
+   
     div = np.zeros_like(grid[:,:,0])
-
-    #div[1:-1,1:-1] += (div_x + div_y)
     
     div[1:,:] -= grid[:-1,:,0]
     div[:-1,:] += grid[1:,:,0]
@@ -29,27 +41,6 @@ def get_div(grid):
     div[:,:-1] += grid[:,1:,1]
     
     return div
-
-
-    # pad back to full size (so we can display it as 400x400)
-    full_div = np.zeros_like(grid[:,:,0])
-    full_div[1:-1,1:-1] = div
-    return full_div
-
-
-def apply_div(grid,div):
-    du = np.zeros_like(grid) 
-    du[2:,1:-1,0] -= div[1:-1,1:-1]/4
-    du[:-2,1:-1,0] += div[1:-1,1:-1]/4
-    du[1:-1,2:,1] -= div[1:-1,1:-1]/4
-    du[1:-1,:-2,1] += div[1:-1,1:-1]/4
-
-    du[0,:,0] = 0 
-    du[-1,:,0] = 0 
-    du[:,0,1] = 0 
-    du[:,-1,1] = 0 
-    return du
-
 
 
 def get_curl(grid):
@@ -63,29 +54,35 @@ def get_curl(grid):
     return full_curl
 
 
-
-def apply_curl(grid,curl):
+def apply_pressure(grid,p,dt):
     data = grid.copy()
-    
-    data[2:,1:-1,1] -= curl[1:-1,1:-1]/4
-    data[:-2,1:-1,1] += curl[1:-1,1:-1]/4
-    data[1:-1,2:,0] -= curl[1:-1,1:-1]/4
-    data[1:-1,:-2,0] += curl[1:-1,1:-1]/4
+    data[1:-1,1:-1,0] += dt*(p[:-2,1:-1]-p[2:,1:-1])
+    data[1:-1,1:-1,1] += dt*(p[1:-1,:-2]-p[1:-1,2:])
     return data
-
+  
+        
 
 
 
 def convect(grid,k):
 
     data = grid.copy()
-    data[1:-1,1:-1,0] += 0.5*(grid[:-2,1:-1,0]-grid[2:,1:-1,0])*grid[1:-1,1:-1,0]*k
-    data[1:-1,1:-1,0] += 0.5*(grid[1:-1,:-2,0]-grid[1:-1,2:,0])*grid[1:-1,1:-1,1]*k
+    k1 = grid.copy()
+    k2 = grid.copy()
+    vel = grid.copy()
+   
+    k1[:,:,0] = advect(vel,data[:,:,0],k*0.5)
+    k1[:,:,1] = advect(vel,data[:,:,1],k*0.5)
 
-    data[1:-1,1:-1,1] += 0.5*(grid[:-2,1:-1,1]-grid[2:,1:-1,1])*grid[1:-1,1:-1,0]*k
-    data[1:-1,1:-1,1] += 0.5*(grid[1:-1,:-2,1]-grid[1:-1,2:,1])*grid[1:-1,1:-1,1]*k
+    k2[:,:,0] = advect(vel,data[:,:,0],k*1.5)
+    k2[:,:,1] = advect(vel,data[:,:,1],k*1.5)
 
-    return data
+   
+    return (k1 + k2)/2
+
+
+
+
 def semi_convect(grid, k):
 
     data = grid.copy()
@@ -128,10 +125,25 @@ def diffuse_vel(grid,k):
 
 def advect(velocity, ink, k):
 
-    data = ink[:,:]
+    data = ink[:,:].copy()
     data[1:-1,1:-1] += 0.5*(ink[:-2,1:-1]-ink[2:,1:-1])*velocity[1:-1,1:-1,0]*k
     data[1:-1,1:-1] += 0.5*(ink[1:-1,:-2]-ink[1:-1,2:])*velocity[1:-1,1:-1,1]*k
     return data
+
+def div_advect(velocity, ink, k):
+
+    data = ink[:,:].copy()
+    data[1:-1,1:-1] += 0.5*(
+        ink[:-2,1:-1]*(velocity[:-2,1:-1,0]) + 
+        ink[2:,1:-1]*(-velocity[2:,1:-1,0])
+        )*dt
+    
+    data[1:-1,1:-1] += 0.5*(
+        ink[1:-1,:-2]*(velocity[1:-1,:-2,1]) + 
+        ink[1:-1,2:]*(-velocity[1:-1,2:,1])
+        )*dt
+    return data
+
 
 def diffuse_scalar(grid,k):
 
@@ -192,7 +204,7 @@ def scalarboundary(grid,slip = 1):
         data[1:-1,-1] = data[1:-1,-2]
 
         # up down
-        data[0,1:-1] =  data[1,1:-1]
+        data[0,1:-1] = data[1,1:-1]
         data[-1,1:-1] =  data[-2,1:-1]
     else:
         data[1:-1,0] = 0
@@ -205,29 +217,54 @@ def scalarboundary(grid,slip = 1):
 
     return data
    
-   
+
+def multi_step_convect(u, dt):
+    k1 = convect(u,dt*0.5,u)
+    k2 = convect(u,dt*1.5,k1)
+    k3 = convect(u,dt,(k1+k2)/2)
+    
+    return (k1 + k2 + k3)/3
+
+
+def multi_step_advect(h,u,dt):
+    k1 = advect(u,h,dt*0.5)
+    k2 = advect(u,h,dt*1)
+    k3 = advect(u,h,dt*1.5)
+    return (k1+ k2*2 + k3)/4
     
     
 
 
 
+
+
+
+figure,ax = plt.subplots(1,1,figsize=(10,5))
 
 
 running = True
 
 plt.set_cmap("jet")
 Y, X = np.mgrid[0:grid.shape[0], 0:grid.shape[1]]
-plt.title("∇⋅U = Q")
+
  
 #grid[:,:,0] = -1
 
 #ink[40:45,:10] = 1
 
+#heat[:50,:] = 1
+#heat[50:,:] = -1
+#heat[30:40, 45:55] = 1
 
 div_line = []
-for i in range(1000):
+heat += np.random.random([100,100])*0.01
+heat_line = []
+def solve(i):
 
-    
+    global grid,ink,dt, rho, ink_rho, density, buoyancy, heat
+    if i%10 == 0:
+        print(i)
+   
     #print(i)
     re = round((
         np.sqrt(
@@ -235,97 +272,102 @@ for i in range(1000):
             grid[:,:,1]**2
             ).max()*
             max(grid.shape))/(rho),2)
-    
-    plt.title(f"inconpressible navier stokes, re = {re}")
-    #plt.imshow(divergence(grid))
 
-    
     for j in range(20):
         
        
-        #grid[44:51,:5,:] = 0
-        #grid[45:50,:5,1] = 2
-        #ink[45:50,:5] = 1
         
-        ink[:5, 45:50] = 1
-        #grid[:,:,0] -= heat*0.01
-        grid[:,:,0] += ink*0.01
-        
-        grid = diffuse_vel(grid,rho)
-        grid = convect(grid,dt)
-
-        grid =  np.clip(grid,-2,2)   
-        ink =  np.clip(ink,0,1)   
-
-        speed = np.sqrt(grid[:,:,0]**2 + grid[:,:,1]**2)*2
-
-      
-        ink = scalarboundary(ink)
-        ink += diffuse_scalar(ink,ink_rho*dt)
-        ink = advect(grid,ink,dt)
+        #grid[30:40,:5,1] = 2
         
        
         
+        heat[20:30, 45:50] = 1
+        #grid[30:40, 45:55,1] = 1
+        
+        
+        
+        
+       
+        #heat = scalarboundary(heat)
+        
+
+     
+        #ink = np.max(ink,0)  
+
+        heat = scalarboundary(heat,1)
+        heat += diffuse_scalar(heat,heat_rho*dt)
+        heat = advect(grid,heat,dt)
+        heat = np.clip(heat,-1,1)
+
+
+        ink = scalarboundary(ink,0)
+        ink += diffuse_scalar(ink,ink_rho*dt)
+        ink = div_advect(grid,ink,dt)
+        ink = np.clip(ink,0,1)
+
+
+        
         p = np.zeros_like(grid[:,:,0])
         div = get_div(grid)
-
-        grid = boundary(grid)
+       
+        grid[:,:,0] += heat*buoyancy*dt
+        grid[:,:,0] -= 0.01*dt
+        
+        
+        
         for w in range(40):
-            #grid  = apply_div(get_div(grid))
-           
+            #grid  = apply_div(grid,get_div(grid)*0.1)
+            
+
             p[1:-1,1:-1] = (
                 p[2:,1:-1] + p[:-2,1:-1]  + 
                 p[1:-1,2:,] + p[1:-1,:-2] - div[1:-1,1:-1]
             )/4
-
-            p[0,1:-1] = p[1,1:-1]
+            
+            p[0,1:-1] = p[1,1:-1] 
             p[-1,1:-1] = p[-2,1:-1]
             
-            p[1:-1,0] = p[1:-1,1]
-            p[1:-1,-1] = p[1:-1,-2]
-
-        ip = np.zeros_like(ink)
-
-        for w in range(0):
-            #grid  = apply_div(get_div(grid))
-           
-            ip[1:-1,1:-1] = (
-                ip[2:,1:-1] + ip[:-2,1:-1]  + 
-                ip[1:-1,2:,] + ip[1:-1,:-2] + (ink[1:-1,1:-1]-0.7)
-            )/4
-
-            p[0,1:-1] = p[1,1:-1]
-            p[-1,1:-1] = p[-2,1:-1]
-            
-            p[1:-1,0] = p[1:-1,1]
+            p[1:-1,0] = p[1:-1,1] 
             p[1:-1,-1] = p[1:-1,-2]
 
 
-            ip[0,1:-1] = ip[1,1:-1]
-            ip[-1,1:-1] = ip[-2,1:-1]
-            
-            ip[1:-1,0] = ip[1:-1,1]
-            ip[1:-1,-1] = ip[1:-1,-2]
 
-            
-        grid[1:-1,1:-1,0] += dt*(p[:-2,1:-1]-p[2:,1:-1])/density
-        grid[1:-1,1:-1,1] += dt*(p[1:-1,:-2]-p[1:-1,2:])/density
+        grid[1:-1,1:-1,0] += dt*(p[:-2,1:-1]-p[2:,1:-1])
+        grid[1:-1,1:-1,1] += dt*(p[1:-1,:-2]-p[1:-1,2:])
 
-        #grid[1:-1,1:-1,0] -= dt*(ip[:-2,1:-1]-ip[2:,1:-1])/density
-        #grid[1:-1,1:-1,1] -= dt*(ip[1:-1,:-2]-ip[1:-1,2:])/density
+        
+        grid = boundary(grid)
+        #grid[45:50,:5,1] = 1
+        #grid[ :2,45:50 ,0] = 1
+        
+       
+        
+        grid = convect(grid,dt)
 
+        grid = diffuse_vel(grid,rho)
+        grid =  np.clip(grid,-1,1)   
+  
+        
 
         
         
-     
-        
-    if 1:  
+    if 1:
+        heat_line.append(heat.sum()/(np.ones_like(heat).sum()))
+        speed = np.sqrt(grid[:,:,0]**2 + grid[:,:,1]**2)*2  
         curl = get_curl(grid)
         div = get_div(grid)
-        #plt.imshow(p,origin = "lower")
-        plt.imshow(ink,vmax=1, vmin = 0, origin = "lower")
-        #plt.contourf(p*10,vmax=1,vmin=-1,cmap = "Grays",levels = 10)
+       
+        plt.clf()
+        #plt.cla()
+        plt.title(f"inconpressible navier stokes ∇⋅U = 0 ( 100x100 ) ")
+        
+        #plt.plot(heat_line)
+        #plt.plot(p_line)
+        plt.imshow(heat, vmax = 1, vmin = 0, origin = "lower")
         #plt.colorbar()
+       
+        #plt.contourf(p*10,vmax=1,vmin=-1,cmap = "Grays",levels = 10)
+        
         #plt.quiver(X, Y, grid[:,:,1], -grid[:,:,0])
         if 0:
             plt.streamplot(
@@ -336,27 +378,20 @@ for i in range(1000):
                 linewidth=1,
                 
             )
-        plt.pause(0.001)
-        plt.clf()
-    elif i%10:
-        print(i)
-
-
+        
     
-if 1:
-    re = (np.sqrt(grid[:,:,0]**2 + grid[:,:,1]**2).max()*max(grid.shape))/(rho)
-    plt.title(f"inconpressible navier stokes, re = {round(re)}")
 
-    #plt.imshow(get_curl(grid)*10,vmax=1,vmin=-1,origin = "lower")
-    plt.streamplot(
-            X, Y,
-            grid[:,:,1],  # u
-            grid[:,:,0],  # v
-            density=2,
-            linewidth=1,   
-            )
-if 0:
-    plt.title(f"divergence over time")
-    plt.plot(div_line)
 
-plt.show()
+if __name__ == "__main__":
+    path = "2d_inconpressible_flame"
+    gif_path = path + '.gif'
+    mp4_path = path + '.mp4'
+    writer = animation.PillowWriter(fps=30,bitrate=400)
+    print("running")
+    data = animation.FuncAnimation(figure,solve, frames = 300, interval = 1)
+    plt.show()
+    print("saving")
+    data.save(gif_path,writer = writer)
+    print("done")
+    from gif_to_mp4 import Converter
+    Converter(gif_path,mp4_path)
