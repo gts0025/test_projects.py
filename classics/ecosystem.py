@@ -66,14 +66,14 @@ while loop == 1:
                                 count_predator += 1
                                 
             
-            print("predator:",count_predator,"prey: ",count_prey)
-            
             data[0].append(count_predator)
             data[1].append(count_prey)
             data[2].append(step)
             
             predator.pos_x += random.randint(-1,1)
             predator.pos_y += random.randint(-1,1)
+    
+    print("predator:",count_predator,"prey: ",count_prey)
     
     for prey in forest:
         

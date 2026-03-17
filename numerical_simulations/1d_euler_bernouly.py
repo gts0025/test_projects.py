@@ -12,10 +12,8 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 #initial gaussioan disturbance
 h_range = 1
-x = np.linspace(-10,10,100)
-space = ((x/10)**2)*0.3
-space = np.exp(-x**2)*(h_range)/2
-#space = np.zeros_like(x)
+x = np.linspace(-10,10,50)
+space = np.zeros_like(x)
 up = space
 uc = space
 
@@ -132,8 +130,8 @@ def viz_sumualtion(steps,substeps, uc, up, c, dt):
         
         
         for j in range(substeps):
-            #uc,up = bending_step(uc, up, c, dt)
-            uc,up = wave_step(uc, up, c, dt)
+            uc,up = bending_step(uc, up, c, dt)
+            #uc,up = wave_step(uc, up, c, dt)
             
            
 
@@ -150,7 +148,7 @@ def viz_sumualtion(steps,substeps, uc, up, c, dt):
         #simulation part
 
         plt.cla()
-        plt.title(f"1d euler-bernouly equation. step: {i*substeps}")
+        plt.title(f"1d euler-bernouly equation. step: {round(i/steps,2)*100}")
         plt.plot(x,uc)
 
 
@@ -163,8 +161,8 @@ def viz_sumualtion(steps,substeps, uc, up, c, dt):
 def get_sound(steps, uc, up, c, dt):
     data = []
     for i in range(steps):
-        percent = round((i/steps)*100,3)
-        if percent%10 == 0:
+        percent = ((i/steps)*100)
+        if round(percent,2)%10 == 0:
             print(round(percent))
  
         uc,up = bending_step(uc, up, c, dt)
@@ -172,10 +170,10 @@ def get_sound(steps, uc, up, c, dt):
         
         
 
-        data.append(uc[uc.shape[0]//2])
+        data.append(uc[-1])
     data = np.array(data)
     data = data/(np.max(np.abs(data)))
-    return np.int16(np.abs(data)*400)
+    return np.int16(np.abs(data)*1000)
 
 def viz_freq(sound,ftime,frequency_range,frequency_amount):
     frequency = fourier.forward(sound,np.linspace(0,ftime,sound.shape[0]),frequency_range,frequency_amount)
@@ -193,12 +191,12 @@ def viz_freq(sound,ftime,frequency_range,frequency_amount):
         
 
 et = []
-displacemet = 0
+displacemet = 0.5
 speed = 0
-uc[8:12] = displacemet
-up[8:12] = displacemet+speed*dt
+uc[-40:] = displacemet
+up[-40:] = displacemet
 
-#viz_sumualtion(steps,substeps,uc, up, c, dt)
+viz_sumualtion(steps,substeps,uc, up, c, dt)
 
 
 sps = 1/dt
@@ -206,8 +204,7 @@ steps = int(sps*5)
 data = get_sound(steps,uc, up, c, dt)
 
 
-
-viz_freq(data,steps*dt,[10,400],800)
+viz_freq(data,steps*dt,[10,1000],1000)
 for i in range(100):
     sdvc.play(data,int(sps))
     sdvc.wait()

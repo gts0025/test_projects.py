@@ -73,11 +73,12 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-    pygame.display.flip()
-    screen.fill("black")       
+          
     clock.tick(t)
     dt = 100/(clock.get_fps()+1)
-    print(dt)
+    pygame.display.flip()
+    screen.fill("black") 
+    #print(dt)
     
    
     

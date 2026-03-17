@@ -1,7 +1,7 @@
 import pygame,random
 
 class Node:
-    def __init__(self,size = 700,basket_size = 4) -> None:
+    def __init__(self,size = 700,basket_size = 4, min_size = 1) -> None:
     
         self.pos = [0,0]
         self.basket = []
@@ -10,6 +10,7 @@ class Node:
         self.amount = 0
         self.color = (0,0,0)
         self.level = 0
+        self.min_size = min_size
         self.basket_size = basket_size
         self.t = 0
     
@@ -57,7 +58,7 @@ class Node:
         if self.enclose(value):
             self.amount += 1
             self.t += value.t
-            if len(self.basket) < self.basket_size and (not self.children or self.size <= 2.5):
+            if len(self.basket) < self.basket_size and (not self.children or self.size <= self.min_size):
                 self.basket.append(value)
                 
             else:

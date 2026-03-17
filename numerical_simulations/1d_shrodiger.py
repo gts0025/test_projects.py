@@ -110,7 +110,7 @@ if __name__ == "__main__":
     mp4_path = path + '.mp4'
     writer = animation.PillowWriter(fps=25,bitrate=400)
     print("running")
-    data = animation.FuncAnimation(figure,solve_independant, frames = steps, interval = 1)
+    data = animation.FuncAnimation(figure,show, frames = steps, interval = 1)
     plt.show()
     print("saving")
     data.save(gif_path,writer = writer)

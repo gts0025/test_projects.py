@@ -3,7 +3,7 @@ from numpy import arange
 from math import dist
 from random import choice,randint,shuffle
 pygame.init()
-size = 700
+size = 400
 screen = pygame.display.set_mode((size,size))
 cell = 20
 clock = pygame.time.Clock()
@@ -11,7 +11,7 @@ clock = pygame.time.Clock()
 class Particle:
     def __init__(self,pos) -> None:
         self.pos = pos
-        self.speed = [0,0]
+        self.speed = [1,0]
         
     
     def pressure(self,direction):
@@ -90,7 +90,7 @@ class Grid:
                 pygame.draw.rect(screen,(c,c,c),[x*cell,y*cell,cell,cell])
                     
                                 
-amount = 5000            
+amount = 100            
 particles = []
 for i in range(amount):
     x = randint(0,size)
@@ -112,6 +112,6 @@ while True:
     
     grid.show()
     pygame.display.flip()
-    clock.tick(60)
+    #clock.tick(60)
     
                 

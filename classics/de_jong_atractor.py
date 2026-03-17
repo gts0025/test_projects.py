@@ -61,8 +61,8 @@ while True:
     screen.blit(wipe,(0,0))
     point = [0,0]
     
-    particles_dejung()
-    #simple_dejung(1000)
+    #particles_dejung()
+    simple_dejung(1000000)
     #print(point[0],point[1])
     pygame.display.flip()    
     clock.tick(60)

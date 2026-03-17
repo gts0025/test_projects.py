@@ -10,17 +10,19 @@ size = 400
 
 init_seed = random.randint(-200,200)
 Clock = pygame.time.Clock()
+
 class Dot:
     def __init__(self):
-        self.pos = [random.randint(0,100),random.randint(0,100)]
+        self.pos = [random.randint(0,400),random.randint(0,400)]
         self.speed = [random.randint(-10,10)/10,random.randint(-10,10)/10]  
         self.checks = 0 
+        self.known = set()
         
         while self.speed[0] == 0 and self.speed[1] == 0:
             self.speed = [random.randint(-10,10)/10,random.randint(-10,10)/10]
 
         self.force = [0,0]   
-        self.t = 1 if  (random.randint(0,100) < 90) else 0
+        self.t = 1 if  (random.randint(0,100) < pred_ratio) else 0
 
 
     def reflect(self):
@@ -60,7 +62,7 @@ class Dot:
 
     
     def move(self):
-       
+        self.known.clear()
         #if(f_mag > 0):
             #self.force = [(self.force[0]/f_mag),(self.force[1]/f_mag)]
         
@@ -88,36 +90,35 @@ class Dot:
     def interact(self,other):
         self.checks +=1
 
-        if self == other:
+        if self == other or other in self.known:
             return
+        else:self.known.add(other)
         
         d = (math.dist(self.pos,other.pos))
-        k = 1/(math.exp(0.001*d**2))
-        rest = 10
-        boundary = 60
+        
         if 0 < d < boundary:
             norm = [(self.pos[0]-other.pos[0])/d, (self.pos[1]-other.pos[1])/d]
             
         
             if self.t == other.t: 
-                self.force[0] -= norm[0]*(d-rest)*k*0.1
-                self.force[1] -= norm[1]*(d-rest)*k*0.1
+                self.force[0] -= norm[0]*(d-rest)*k*dt
+                self.force[1] -= norm[1]*(d-rest)*k*dt
                 
-                self.force[0] -= (self.speed[0]-other.speed[0])*k
-                self.force[1] -= (self.speed[1]-other.speed[1])*k
+                self.force[0] -= (self.speed[0]-other.speed[0])*rho*dt
+                self.force[1] -= (self.speed[1]-other.speed[1])*rho*dt
 
 
             else:
                 if d > rest:
                     if self.t > other.t:
-                        self.force[0] -= norm[0]*(d-boundary)*k*0.1
-                        self.force[1] -= norm[1]*(d-boundary)*k*0.1
+                        self.force[0] -= norm[0]*(d-boundary)*avoidance*dt
+                        self.force[1] -= norm[1]*(d-boundary)*avoidance*dt
                     elif self.t < other.t :
-                        self.force[0] += norm[0]*(d-boundary)*k*0.1
-                        self.force[1] += norm[1]*(d-boundary)*k*0.1
+                        self.force[0] += norm[0]*(d-boundary)*targeting*dt
+                        self.force[1] += norm[1]*(d-boundary)*targeting*dt
                 else:
-                    self.force[0] -= norm[0]*(d-rest)*k*0.1
-                    self.force[1] -= norm[1]*(d-rest)*k*0.1
+                    self.force[0] -= norm[0]*(d-rest)*k*dt
+                    self.force[1] -= norm[1]*(d-rest)*k*dt
 
                 #self.force[0] += (self.speed[0]-other.speed[0])*k
                 #self.force[1] += (self.speed[1]-other.speed[1])*k
@@ -128,7 +129,7 @@ class Dot:
         
 def interact(obj1,obj2):
     obj1.interact(obj2)
-
+    obj2.interact(obj1)
 level = []
 masses = {}
 
@@ -171,19 +172,33 @@ def average_speed(node):
         speed[1] /= mass
         masses[str(node.color)] = [mass,speed]
     return speed
-    
-quad_level = Node()
-n = 300
+
+avoidance = 2
+targeting = 2
+pred_ratio = 10
+k = -7
+rho = 4
+dt = 0.1
+rest = 1
+boundary = 10
+max_checks = 0
+n = 100
+
 populate(n)
+
+
+quad_level = Node(min_size=boundary)
 close = 0
 screen = pygame.display.set_mode((size,size))
 whipe = pygame.Surface([size,size])
+
 whipe.fill([0,0,0])
 whipe.set_alpha(150)
 mean_checks = 0
 last_mean = 0
-mean_graph = Graph([size,size],screen,200,100)
-mean_graph.set_range([0,2])
+mean_graph = Graph([size,size],screen,200,200)
+mean_graph.data_lenght = 400
+#mean_graph.set_range([0,2])
 while True:
     screen.blit(whipe,[0,0])
     
@@ -203,7 +218,7 @@ while True:
             quad_level.apply_action(dot,interact)
            
         
-        #show_quad(quad_level)
+        show_quad(quad_level)
 
     def naive_run():  
         global mean_checks      
@@ -215,18 +230,17 @@ while True:
             
             
         
-        #show_quad(quad_level)
-
     tree_run()
     #naive_run()
-    
-    smooth_mean = (mean_checks+last_mean)/(2*n) 
+    mean_checks/=n
+    smooth_mean = ((mean_checks) + last_mean*9)/(10) 
 
-    print(round(smooth_mean,2))
+    print(round(smooth_mean,1))
     
     last_mean = smooth_mean
-    
-    mean_graph.insert(mean_checks)
+    max_checks = max(max_checks,smooth_mean)
+    mean_graph.insert(smooth_mean)
+    mean_graph.set_range([0,max_checks])
     mean_graph.show("red")
     
     mean_checks = 0

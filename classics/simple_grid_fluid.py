@@ -351,7 +351,7 @@ def area_transfer(p1):
                 
 
     random.shuffle(neighbors)
-    
+     
     for n in neighbors:
         heat_trasfer(p1,n)
     
@@ -582,6 +582,8 @@ holding = 0
 start_mouse = [0,0]
 mouse_type = 0
 selected_termo = termo1
+
+circle_container()
 while True:
     random.shuffle(particles)
     screen.fill("black")
