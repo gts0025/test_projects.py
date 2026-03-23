@@ -28,13 +28,15 @@ ftime = int(voice.shape[0]/sps)# stopping time
 
 
 #initial gaussioan disturbance
-x = np.linspace(0,10,300)
+x = np.linspace(0,3,300)
 space = np.zeros_like(x)
+space [:50 ] = np.exp(-np.linspace(0,2,50)**2)
+
 up = space
 uc = space
 
 c = 300# density
-d = 4e-8 # viscosity
+d = 1e-4 # viscosity
 dt = 1/sps # stime step size
 data = [] # final sound data 
 
@@ -61,14 +63,13 @@ def wave_step(uc, up, c, dt):
     dx = x[1]-x[0]
     #dx = 1
 
-    d2ux[1:-1] = c**2*(uc[2:] + uc[:-2] - 2*uc[1:-1])/dx**2
-    un  = (2*uc - up + (d2ux*dt*dt)  - ((uc-up)/dt)*d) 
+    d2ux[1:-1] = (uc[2:] + uc[:-2] - 2*uc[1:-1])/dx**2
+    un  = (2*uc - up + ((c**2)*d2ux*dt*dt)  - ((uc-up))*d) 
     up = uc
     uc = un
 
-    un *= 1-(d*dt)
-    uc[0] = uc[1]
-    uc[-1] = uc[-2]
+    uc[0] = uc[1]*0
+    uc[-1] = uc[-2]*0
 
     return uc,up
 
@@ -82,6 +83,7 @@ def get_sound(uc, up, c, dt):
         uc[100] = voice[i]
        
         data.append(uc[1])
+
     data = np.array(data)
     data /= np.max(np.abs(data)) 
     sound = np.int16(data*2e4)
@@ -93,23 +95,32 @@ def get_sound(uc, up, c, dt):
     #sdvc.play(echo,sps)
     return sound
 
+def get_inpulse_response(uc, up, c, dt,t):
+
+    data = []
+    for i in range(round(t/dt)):
+        uc,up = wave_step(uc, up, c, dt)
+        data.append(uc[1])
+    data = np.array(data)
+    data /= np.max(np.abs(data)) 
+
+    return data
+
 
 def viz_sumualtion(iterations,uc, up, c, dt):
     
     for i in range(iterations):
     
         plt.cla()
-        plt.title(f"1d wave equation. step:{i}")
+        plt.title(f"1d wave equation. t::{i*dt*50}")
         
-        for j in range(30):
-            uc[-2] = voice[i + sps]
-            up[-2] = voice[i + sps]
-        
-            wave_step(uc, up, c, dt)
+        for i in range(50):
+            uc,up = wave_step(uc, up, c, dt)
+
             
         plt.plot(uc)
         plt.ylim(-1,1)
-        plt.pause(1/sps)
+        plt.pause(0.001)
 
 def viz_data():
     get_sound()
@@ -132,11 +143,11 @@ def viz_freq(sound,ftime):
     plt.show()
 
 start = time.time()
-#viz_sumualtion(1000,uc, up, c, dt)
-sound = get_sound(uc, up, c, dt)
+#viz_sumualtion(round(1/dt),uc, up, c, dt)
+#sound = get_sound(uc, up, c, dt)
 
-#plt.plot(data)
-#plt.plot(voice)
+impulse = get_inpulse_response(uc,up,c,dt,(x[1]-x[0])/c)
+sound = np.convolve(voice,impulse)
 
 #plt.show()
 end = time.time()
