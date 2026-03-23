@@ -1,5 +1,9 @@
 #gif to mp4
 import moviepy as mp
+import os
+
+os.chdir(os.path.dirname(os.path.abspath(__file__))) 
+
 class Converter:
     def __init__(self,gif_path:str, video_path:str):
         """
@@ -11,4 +15,5 @@ class Converter:
         clip = mp.VideoFileClip(gif_path)
         clip.write_videofile(video_path)
         clip.close()
+        os.remove(gif_path)
 
