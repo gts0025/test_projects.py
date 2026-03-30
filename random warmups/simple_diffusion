@@ -1,0 +1,101 @@
+# explosion test in diffusion equation
+
+import numpy as np, matplotlib.pyplot as plt
+def lapalcian(u):
+    dux  = (u[2:] + u[:-2] - 2*u[1:-1])
+    zeros = np.zeros_like(u)
+    zeros[1:-1] = dux 
+    return zeros
+
+u = np.zeros(100)
+u[45:55] = 1
+
+
+def implicit_Euler(u0,c0,dt,steps):
+    u = u0[:]
+    c = c0[:]
+    for i in range(steps):
+        d2ux = lapalcian(u)
+        c += d2ux*dt
+        c[0] = 0
+        c[-1] = 0
+        u += c*dt
+        
+    return u,c
+
+def explicit_Euler(u0,c0,dt,steps):
+    u = u0[:]
+    c = c0[:]
+    for i in range(steps):
+        d2ux = lapalcian(u)
+        u += c*dt
+        c += d2ux*dt
+        c[0] = 0
+        c[-1] = 0
+        
+        
+    return u,c
+
+def Kutta2(u0,c0,dt,steps):
+    u = u0[:]
+    c = c0[:]
+    
+    for i in range(steps):
+        
+        kc1 = lapalcian(u)
+        kx1 = c
+        
+        nu = u + kx1*dt
+        nc = c + kc1*dt
+
+        kc2 = lapalcian(nu)
+        kx2 = nc      
+
+        c += dt*(kc1 + kc2)/2
+        u += dt*(kx1 + kx2)/2
+        
+        c[0] = 0
+        c[-1] = 0
+        
+       
+
+    return u,c
+
+
+
+
+
+#plt.plot(Kutta2(u.copy(),0.5,10),label = "kutta2")
+#plt.plot(Euler(u.copy(),0.5,10),label = "euler")
+
+
+def run(u,steps,dt):
+    kutta = u.copy()
+    kutta_c = np.zeros_like(u)
+
+    i_euler = u.copy()
+    i_euler_c = np.zeros_like(u)
+
+    e_euler = u.copy()
+    e_euler_c = np.zeros_like(u)
+
+    for i in range(steps):
+
+        kutta, kutta_c = Kutta2(kutta,kutta_c,dt,1)
+        
+        i_euler, i_euler_c = implicit_Euler(i_euler,i_euler_c,dt,1)
+        #e_euler, e_euler_c = explicit_Euler(e_euler,e_euler_c,dt,1)
+
+
+        
+        plt.title("wave equation")
+        plt.ylim(-1,1)
+        plt.plot(kutta,label = "kutta2")
+        plt.plot( i_euler,label = "implicit_euler")
+        #plt.plot( e_euler,label = "explicit_euler")
+        plt.legend()
+        plt.pause(0.01)
+        plt.cla()
+    
+
+run(u,1000,0.3)
