@@ -16,29 +16,25 @@ plt.style.use('dark_background')
 density = 1
 dt = 0.1
 dx = 1
-viscosity = 0.05
-ink_dispersion = 0.05
-heat_diffusion = 0.05
+viscosity = 0.03
+ink_dispersion = 0.01
+heat_diffusion = 0.01
 convecion_constant = -0.01
-steps = 2000
-substeps = 40
-pressure_steps = 20
+steps = 25*30
+substeps = 20
+pressure_steps = 40
 
 
 #derivatves 
 
 #restriction
 
-domain = np.zeros([100,200])
+domain = np.zeros([100,100])
 velocity_u = np.ones_like(domain)*0
 velocity_v = np.ones_like(domain)*0
 pressure = np.ones_like(domain)*0
 ink = np.ones_like(domain)*0
 heat = np.ones_like(domain)*0
-
-x = np.arange(domain.shape[0])
-y = np.arange(domain.shape[1])
-x, y= np.meshgrid(x,y)
 
 figure,ax = plt.subplots(1,1,figsize=(10,5))
 #ax.set_aspect('equal')
@@ -47,6 +43,9 @@ figure,ax = plt.subplots(1,1,figsize=(10,5))
 
 
 
+#velocity_u[:20,20:30] = 1
+#velocity_u[-20:,20:30] = -1
+
 mask = []
 flip = 0
 value = 1
@@ -54,6 +53,32 @@ value = 1
 current_percent = -1
 fluid_influx = 0
 fluid_out_flux = 0
+
+
+# eddie shape
+stamp = np.zeros([20,20])
+
+
+x = np.linspace(-1,1,stamp.shape[0])
+y = np.linspace(-1,1,stamp.shape[1])
+
+xx,yy = np.meshgrid(x,y)
+d = np.sqrt(xx**2 + yy**2) + 0.001
+sigma = np.exp(-(d*d*2)) 
+
+eu = (yy/d)*0.7*sigma
+ev = -(xx/d)*0.7*sigma
+
+
+#scene setup
+
+#velocity_u[30:50,40:60] = eu
+#velocity_v[30:50,40:60] = ev
+
+#velocity_u[40:60,40:60] = eu
+#velocity_v[40:60,40:60] = ev
+
+
 
 
 def solve(n):
@@ -77,38 +102,83 @@ def solve(n):
       
        
         
+        # velocity update: 
+        #velocity_u[20:25,0] = 1
+        heat[-1,:] = np.exp(-np.linspace(-1.9,2,100)**2) + 0.1
 
-        duy = derivative(velocity_u, 0,dx)
-        dux = derivative(velocity_u, 1,dx)
 
-        d2uy = second_derivative(velocity_u, 0,dx)
-        d2ux = second_derivative(velocity_u, 1,dx)
 
-        dvy = derivative(velocity_v, 0,dx)
-        dvx = derivative(velocity_v, 1,dx)
-        
-        d2vy = second_derivative(velocity_v, 0,dx)
-        d2vx = second_derivative(velocity_v, 1,dx)
+        # current f(x)
 
-        
-        dut = -(
-            dux*velocity_u + duy*velocity_v - 
-            (d2ux+d2uy)*viscosity
+        k1u = -(
+            derivative(velocity_u,1,dx)*velocity_u + 
+            derivative(velocity_u,0,dx)*velocity_v 
             )
         
         
-        dvt = -(
-            dvx*velocity_u +  dvy*velocity_v -
-            (d2vx+d2vy)*viscosity
+        k1v = -(
+            derivative(velocity_v,1,dx)*velocity_u + 
+            derivative(velocity_v,0,dx)*velocity_v -
+            heat*convecion_constant
             )
-        velocity_u += dut*dt
-        velocity_v += dvt*dt
+        
+        k1i = -(
+               derivative(ink,0,dx)*velocity_v + 
+               derivative(ink,1,dx)*velocity_u
 
+               )
+        
+        k1h = -(
+               derivative(heat,0,dx)*velocity_v + 
+               derivative(heat,1,dx)*velocity_u
+               )
+        
+        
+        nu = velocity_u + k1u*dt
+        nv = velocity_v + k1v*dt
+        ni = ink + k1i*dt
+        nh = heat + k1h*dt
+
+
+        k2u = -(
+            derivative(nu,1)*nu + 
+            derivative(nu,0)*nv 
+            )
+        
+        
+        k2v = -(
+            derivative(nv,1)*nu + 
+            derivative(nv,0)*nv -
+            nh*convecion_constant
+            )
+        
+        
+        k2i = -(
+               derivative(ni,0)*nv + 
+               derivative(ni,1)*nu
+            )
+        
+        
+        k2h = -(
+               derivative(nh,0)*nv + 
+               derivative(nh,1)*nu
+              
+               )
+        
+        
+        
+        velocity_u += dt*(k1u  + k2u )/2 + second_derivative(velocity_u,2)*viscosity*dt
+        velocity_v += dt*(k1v + k2v )/2 + second_derivative(velocity_v,2)*viscosity*dt
+        ink += dt*(k1i + k2i)/2 + second_derivative(ink,2)*ink_dispersion*dt
+        heat += dt*(k1h + k1h)/2 + second_derivative(heat,2)*heat_diffusion*dt
+        
 
         divergence = (
         derivative(velocity_u,1,dx)+
         derivative(velocity_v,0,dx)
         )
+
+
              
         for i in range(pressure_steps):
             pressure[1:-1,1:-1] = (
@@ -116,14 +186,14 @@ def solve(n):
                 pressure[:-2,1:-1]+
                 pressure[1:-1,2:]+
                 pressure[1:-1,:-2] - 
-                divergence[1:-1,1:-1]*(dx**2)
+                divergence[1:-1,1:-1]*(dx**2)*(density/dt)
             )/4
             
-            pressure[:,0] = pressure[:,1] - 2*divergence[:,1]*(dx**2)
-            pressure[:,-1] = pressure[:,-2] - 2*divergence[:,-2]*(dx**2)
+            pressure[:,0] = pressure[:,1] 
+            pressure[:,-1] = pressure[:,-2] 
             
-            pressure[0,:] = pressure[1,:] - 2*divergence[1,:]*(dx**2)
-            pressure[-1,:] = pressure[-2,:] - 2*divergence[-2,:]*(dx**2)
+            pressure[0,:] = pressure[1,:] 
+            pressure[-1,:] = pressure[-2,:]
 
        
         dpx = derivative(pressure,1,dx)
@@ -138,49 +208,24 @@ def solve(n):
         #ink[0,:] = ink[1,:]
         #ink[-1,:] = ink[-2,:]
     
-        dit = -(
-               derivative(ink,0)*velocity_v + 
-               derivative(ink,1)*velocity_u
-               - (
-                   second_derivative(ink,0)+
-                   second_derivative(ink,1)
-                   )*ink_dispersion
-               )
         
         
-        ink += dit*dt
+        #heat[-1,:] = 1 + np.random.random((1,domain.shape[1]))*0.3
 
-        dht = -(
-               derivative(heat,0)*velocity_v + 
-               derivative(heat,1)*velocity_u
-               - (
-                   second_derivative(heat,0)+
-                   second_derivative(heat,1)
-                   )*heat_diffusion
-               )
+        velocity_u[:,0] =  velocity_u[:,1]*0
+        velocity_u[:,-1] =  velocity_u[:,-2]*0
+        
+        velocity_u[0,:] = velocity_u[1,:]*0
+        velocity_u[-1,:] = velocity_u[-1,:]*0
+
+       
+        velocity_v[:,0] = velocity_v[:,1]*0
+        velocity_v[:,-1] = velocity_v[:,-2]*0
+        
+        velocity_v[0,:] = velocity_v[1,:]*0
+        velocity_v[-1,:] = velocity_v[-2,:]*0
         
         
-        heat += dht*dt
-        velocity_v += heat*convecion_constant*dt
-
-        
-        heat[-5:,:] = 1 + np.ones([5,200])*0.1*np.exp(-np.linspace(-1.8,2,200)**2)
-
-        velocity_u[:,0] =  0
-        velocity_u[:,-1] =  0
-        
-        velocity_u[0,:] = 0
-        velocity_u[-1,:] = 0
-
-        velocity_u[100:120,0] = 0
-        #ink[100:120,1] = 1
-
-        velocity_v[:,0] = 0
-        velocity_v[:,-1] = 0
-        
-        velocity_v[0,:] = 0
-        velocity_v[-1,:] = 0
-
         
 
 
@@ -189,22 +234,17 @@ def solve(n):
 
       
        
-    x = np.linspace(0,pressure.shape[1],pressure.shape[1])
-    y = np.linspace(0,pressure.shape[0],pressure.shape[0])
+    x = np.linspace(0,domain.shape[1]*dx,domain.shape[1])
+    y = np.linspace(0,domain.shape[0]*dx,domain.shape[0])
     pressure -= pressure.mean()  
-    curl = derivative(velocity_u,0)-derivative(velocity_v,1)
-    div = derivative(velocity_u,1)+derivative(velocity_v,0) 
+    curl = derivative(velocity_u,0,dx)-derivative(velocity_v,1,dx)
+    div = derivative(velocity_u,1,dx)+derivative(velocity_v,0,dx)
+    vel = np.sqrt(velocity_u**2 + velocity_v**2)
 
-    sharpened_ink = ink + (
-                   second_derivative(ink,0)+
-                   second_derivative(ink,1)
-                   )*30*ink_dispersion
-
-    
     plt.clf()
-    plt.title(f"2d bousinesq equation")
-    plt.imshow(heat,vmax = 1, vmin = 0, cmap="afmhot")
-    plt.colorbar(label = "temperature")
+    plt.title("2d_lid_driven_flow")
+    plt.imshow(pressure, cmap="inferno",vmin = 0)
+    plt.colorbar(label = "heat")
 
     #plt.plot(velocity_u[:20,10])
     #plt.streamplot(x,y,velocity_u,velocity_v,color="black",density = 1.5)
@@ -232,14 +272,14 @@ xx, yy = np.meshgrid(x,y)
 
 
 if __name__ == "__main__" and 1:
-    path = "heatted_bottom_plate"
+    path = "2d_lid_driven_flow"
     gif_path = path + '.gif'
     mp4_path = path + '.mp4'
-    writer = animation.PillowWriter(fps=30,bitrate=400)
+    writer = animation.PillowWriter(fps=25,bitrate=400)
     
     data = animation.FuncAnimation(figure,solve, frames = steps, interval = 1)
     
-    #plt.show()
+    plt.show()
     print("running")
     data.save(gif_path,writer = writer)
     print("done")

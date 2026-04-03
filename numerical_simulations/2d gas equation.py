@@ -18,7 +18,7 @@ bright = 1-bright
 
 
 
-#bright = np.ones([100,200])
+bright = np.ones([100,100])
 
 
 
@@ -111,15 +111,15 @@ def solve(n):
         #dbx = abs(derivative(bright,0))>0.1
         #dby = abs(derivative(bright,1))>0.1
 
-        velocity_u[bright > 0.5] = 0
-        velocity_v[bright > 0.5] = 0
-        ink[bright > 0.5] = 0
+        #velocity_u[bright > 0.5] = 0
+        #velocity_v[bright > 0.5] = 0
+        #ink[bright > 0.5] = 0
 
-        ink[90:,50:55] = 1
+        #ink[90:,50:55] = 1
     
 
         wall = np.zeros_like(velocity_u)
-        #wall = place_sphere([51,50],15,wall,1)
+        wall = place_sphere([51,50],15,wall,1)
 
         velocity_u[wall>0] = 0
         velocity_v[wall>0] = 0
@@ -166,18 +166,13 @@ def solve(n):
         d2ty = second_derivative(heat, 1)
 
         
-        
-        
-         
-
-        
-      
-        
         ddt = -(
             dux*density + dvy*density +
             ddx*velocity_u + ddy*velocity_v -
             (d2dx+d2dy)*dd
         )/density
+        
+
         
 
         dut = -(
@@ -192,6 +187,12 @@ def solve(n):
             )
         
         
+
+
+
+
+
+
 
         dit = -(
             -flux(ink,velocity_u,velocity_v)-
@@ -265,12 +266,12 @@ def solve(n):
 
     deviation = np.sqrt(d2dx**2 + d2dy**2)
     
-    integrated_along = (velocity_v.sum(axis=1)*(dx))/(((1-bright).sum()))
-    integrated_across = (velocity_v.sum(axis=0)*(dx))/((1-bright).sum())
+    #integrated_along = (velocity_v.sum(axis=1)*(dx))/(((1-bright).sum()))
+    #integrated_across = (velocity_v.sum(axis=0)*(dx))/((1-bright).sum())
     #integrated_ink = (ink.sum(axis=0)*(dx))/(bright.shape[0])
 
     plt.cla()
-    plt.imshow(ink - bright,vmax = 1,vmin=-1,cmap="seismic")
+    plt.imshow(ink,vmax = 1,vmin=-1,cmap="seismic")
     #plt.imshow(div,vmax = 1,vmin=-1,cmap="seismic")
     #plt.imshow(bright)
     #plt.quiver(x,y,velocity_v,-velocity_u, color="white")
