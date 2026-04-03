@@ -10,12 +10,12 @@ plt.style.use("dark_background")
 plank = 1
 i = 1j
 m = 2
-dt = 0.01
+dt = 0.1
 size  = 20
 dx = 1
-cells = 100
-steps = 2000
-substeps = 80
+cells = round(2*size/dx)
+steps = 500
+substeps = 10
 
 line = np.linspace(-size/2,size/2,cells)
 wave = np.zeros(shape=[cells],dtype=complex)
@@ -96,8 +96,21 @@ def show(n):
     
     for substep in range(substeps):
         d2ux = (wave[2:] + wave[:-2] - 2*wave[1:-1])/(dx**2)
-        dut = ( ( -d2ux*(plank**2/(2*m)) ) / (plank*i) )*dt
-        wave[1:-1] += dut
+        k1 = ( ( -d2ux*(plank**2/(2*m)) ) / (plank*i) )
+   
+        nw = wave.copy()
+        nw[1:-1] += k1*dt
+
+        nw[0] = 0
+        nw[-1] = 0
+
+        d2ux = (nw[2:] + nw[:-2] - 2*nw[1:-1])/(dx**2)
+        k2 = ( ( -d2ux*(plank**2/(2*m)) ) / (plank*i) )
+
+        wave[1:-1] += dt*(k1 + k2)/2
+        
+        
+        
         wave[0] = 0
         wave[-1] = 0
 
@@ -111,7 +124,7 @@ if __name__ == "__main__":
     writer = animation.PillowWriter(fps=25,bitrate=400)
     print("running")
     data = animation.FuncAnimation(figure,show, frames = steps, interval = 1)
-    plt.show()
+    ##plt.show()
     print("saving")
     data.save(gif_path,writer = writer)
     print("done")
