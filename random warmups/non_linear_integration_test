@@ -1,0 +1,131 @@
+
+
+import numpy as np, matplotlib.pyplot as plt
+def lapalcian(u):
+    dux  = (u[2:] + u[:-2] - 2*u[1:-1])
+    zeros = np.zeros_like(u)
+    zeros[1:-1] = dux 
+    return zeros
+
+u = np.zeros(200)
+u[75:125] = np.exp(-np.linspace(-2,2,50)**2)
+
+
+
+def wave_Euler(u0,c0,dt,steps):
+    u = u0[:]
+    c = c0[:]
+    for i in range(steps):
+        d2ux = lapalcian(u)
+        dct =  d2ux
+        dut =  c
+        
+        u += dut*dt
+        c += dct*dt
+        
+    return u,c
+
+def wave_coupled_Euler(u0,c0,dt,steps):
+    u = u0[:]
+    c = c0[:]
+    for i in range(steps):
+        d2ux = lapalcian(u)
+        c += d2ux*dt
+        u += c*dt
+        c[0] = 0
+        c[-1] = 0
+        
+        
+    return u,c
+
+def wave_Kutta2(u0,c0,dt,steps):
+    u = u0[:]
+    c = c0[:]
+    
+    for i in range(steps):
+        
+        kc1 = lapalcian(u)
+        kx1 = c
+        
+        nu = u + kx1*dt
+        nc = c + kc1*dt
+
+        kc2 = lapalcian(nu)
+        kx2 = nc      
+
+        c += dt*(kc1 + kc2)/2
+        u += dt*(kx1 + kx2)/2
+        
+        c[0] = 0
+        c[-1] = 0
+        
+       
+
+    return u,c
+
+
+
+def Kutta4(u0,c0,dt,steps):
+    u = u0[:]
+    c = c0[:]
+    
+    for i in range(steps):
+        
+        kc1 = lapalcian(u)
+        kx1 = c
+        
+        nu = u + kx1*dt
+        nc = c + kc1*dt
+
+        kc2 = lapalcian(nu)
+        kx2 = nc      
+
+        c += dt*(kc1 + kc2)/2
+        u += dt*(kx1 + kx2)/2
+        
+        c[0] = 0
+        c[-1] = 0
+        
+       
+
+    return u,c
+
+
+
+
+
+#plt.plot(Kutta2(u.copy(),0.5,10),label = "kutta2")
+#plt.plot(Euler(u.copy(),0.5,10),label = "euler")
+
+
+def run(u,steps,dt):
+    kutta = u.copy()
+    kutta_c = np.zeros_like(u)
+
+    euler = u.copy()
+    euler_c = np.zeros_like(u)
+
+    c_euler = u.copy()
+    c_euler_c = np.zeros_like(u)
+
+    for i in range(steps):
+        
+        kutta, kutta_c = wave_Kutta2(kutta,kutta_c,dt,20)
+        #euler, euler_c = Euler(euler,euler_c,dt,10)
+        c_euler, c_euler_c = wave_coupled_Euler(c_euler,c_euler_c,dt,20)
+       
+
+        
+        plt.title("wave equation")
+        plt.ylim(-2,2)
+        plt.plot(kutta,label = "runge kutta 2")
+        #plt.plot( euler,label = "euler")
+        plt.plot( c_euler,label = "semi-implicit euler")
+        plt.plot( u,label = "u(t = 0)")
+
+        plt.legend()
+        plt.pause(0.01)
+        plt.cla()
+    
+
+run(u,2000,0.3)
