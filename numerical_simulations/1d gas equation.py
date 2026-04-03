@@ -26,7 +26,7 @@ volume = h.sum()
 
 
 k = 1
-d = 0.3
+d = 0.1
 dt = 0.1
 
 def derivative(field):
@@ -39,7 +39,7 @@ def second_derivative(field):
     zero[1:-1] = field[2:]+field[:-2]- 2*field[1:-1]
     return zero 
 
-def step(substeps):
+def kutta_step(substeps):
 
     global u,h,k,dt,d,volume
     #boundary cpndition
@@ -53,20 +53,48 @@ def step(substeps):
     
     #solve
     for i in range(substeps):
+        p = h**k
+        dh1 = -(derivative(u*p) - second_derivative(h)*d)
+        du1 = -(derivative(p)/h - second_derivative(u)*d)
+        
+        
+        nh = h + dh1*dt
+        nu = u + du1*dt
+        np = (nh)**k
+        
+        dh2 = -(derivative((nu)*np) - second_derivative(nh)*d)
+        du2 = -(derivative(np)/(nh) - second_derivative(nu)*d)
+
+        u += (dt)*(du1+du2)/2
+        h += (dt)*(dh1+dh2)/2
+
+def euler_step(substeps):
+
+    global u,h,k,dt,d,volume
+    #boundary cpndition
+    h[0] = h[1]
+    h[-1] = h[-2]
+    #u[0] = u[1]
+    #u[-1] = u[-2]
+    
+    #pressure
+    p = h**k
+    
+    #solve
+    for i in range(substeps):
+        p = h**k
         dht = -(derivative(u*p) - second_derivative(h)*d)
         dut = -(derivative(p)/h - second_derivative(u)*d)
-        u += dut*(dt/substeps)
-        h += dht*(dt/substeps)
-
-        # volume corection:
-        h *= (volume / h.sum())
-
-
+        
+        u += dt*dut
+        h += dt*dht
+       
+v_time = []
 def solve(steps,substeps):
     
     for i in range(steps):
-        for j in range(substeps):
-            step(substeps) 
+        kutta_step(substeps) 
+        #euler_step(substeps) 
 
         #plotting 
        
