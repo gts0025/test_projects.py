@@ -2,11 +2,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-length = 1
-dx = 0.01
+length = 100
+dx = 1
 dt = 0.1
 substeps = 20
-k = 7e-6
+k = 0.1
 size = round(length/dx)
 
 # quantity distribution 
@@ -21,9 +21,9 @@ u = np.zeros((size,size),dtype=float)
 
 plt.set_cmap("jet")
 
-sounrce = np.zeros_like(u,dtype=bool)
-sounrce[30:70,30:70] = 1
-sounrce[35:65,35:65] = 0
+source = np.zeros_like(u,dtype=bool)
+source[30:70,30:70] = 1
+source[35:65,35:65] = 0
 
 def get_laplace(u):
 
@@ -43,12 +43,15 @@ def solve(steps):
         #second derivative using finite difference:
         
         for j in range(substeps):
-            laplace = get_laplace(u)
+           
 
             #gauss seidel integration 
-            u += sounrce*dt
-            u += (laplace)*dt*k
-            u 
+            k1 = get_laplace(u)*k + source 
+            k2 = get_laplace(u + k1*dt/2)*k + source 
+            k3 = get_laplace(u + k2*dt/2)*k + source
+            k4 = get_laplace(u + k3*dt )*k + source
+
+            u += dt*(k1 + 2*k2 + 2*k3 + k4)/6
             
             u[0:, 0] = u[0:, 1]*0
             u[0:, -1] = u[0:, -2]*0
@@ -60,7 +63,7 @@ def solve(steps):
             #create place holders for plot
             plt.clf()
 
-            plt.contourf(xx,yy,u,10, cmap = "inferno")
+            plt.contourf(u,cmap = "inferno")
             plt.colorbar()
            
             plt.pause(0.01)

@@ -42,7 +42,7 @@ def draw_raw_particles(i):
 
 bodies = []
 pos = []
-for i in range(400):
+for i in range(100):
     bodies.append(Body())
     pos.append(bodies[i].pos)
 
@@ -95,7 +95,7 @@ while run:
 
     font = pg.font.Font(None, 24)  # None = default font, size 24
     text = font.render(("x range:"+str( list(x_range) ) ), True, "white")
-    screen.blit(text, (10, 10))
+    #screen.blit(text, (10, 10))
 
     pg.display.flip()
     screen.fill("black")

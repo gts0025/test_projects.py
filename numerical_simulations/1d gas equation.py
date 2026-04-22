@@ -12,15 +12,10 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 plt.winter()
 u = np.ones(200)*0
 
-x = np.linspace(0,1,u.shape[0]) 
-y = abs(x-0.5)**2 + np.random.random(x.shape[0])*0.01
 h = np.ones_like(u)*0.1
-b = y
-
-
 
 #h[:90] += 0.4
-h[180:] += np.exp(-np.linspace(-2,2,20)**2)
+h[90:110] += np.exp(-np.linspace(-2,2,20)**2)*2.
 
 volume = h.sum()
 
@@ -83,11 +78,9 @@ def kutta_step(substeps):
         u += (dt)*(du1+ 2*du2 + 2*du3 + du4)/6
         h += (dt)*(dh1+ 2*dh2 + 2*dh3 + dh4)/6
         
-        h[0] = 1
-        h[1] = (h[0]  + h[2])/2   # x-1 - 2x + x+1 = 0
+        h[0] = h[1]
         h[-1] = h[-2]
-        u[0] = 20
-        u[-1] = u[-2]
+
 
       
 
@@ -125,7 +118,7 @@ def solve(steps,substeps):
         plt.title("1d euler gas equation")
         plt.xlabel("distance")
         plt.ylabel("pressure")
-        #plt.ylim((-1,1))
+        plt.ylim((-0.1,0.5))
         plt.plot(h)
         #plt.plot(u)
         #plt.plot(b)

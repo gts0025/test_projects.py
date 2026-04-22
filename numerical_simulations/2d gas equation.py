@@ -136,34 +136,34 @@ def solve(n):
         div = derivative(velocity_u,0) + derivative(velocity_u,1)
      
 
-        dux = derivative(velocity_u, 0)
-        duy = derivative(velocity_u, 1)
+        dux = derivative(velocity_u, 1)
+        duy = derivative(velocity_u, 0)
 
-        d2ux = second_derivative(velocity_u, 0)
-        d2uy = second_derivative(velocity_u, 1)
+        d2ux = second_derivative(velocity_u, 1)
+        d2uy = second_derivative(velocity_u, 0)
 
-        dvx = derivative(velocity_v, 0)
-        dvy = derivative(velocity_v, 1)
-        d2vx = second_derivative(velocity_v, 0)
-        d2vy = second_derivative(velocity_v, 1)
-
-        
-        ddx = derivative(density, 0)
-        ddy = derivative(density, 1)
-        d2dx = second_derivative(density, 0)
-        d2dy = second_derivative(density, 1)
-
-        dix = derivative(ink, 0)
-        diy = derivative(ink, 1)
-        d2ix = second_derivative(ink, 0)
-        d2iy = second_derivative(ink, 1)
-
+        dvx = derivative(velocity_v, 1)
+        dvy = derivative(velocity_v, 0)
+        d2vx = second_derivative(velocity_v, 1)
+        d2vy = second_derivative(velocity_v, 0)
 
         
-        dtx = derivative(heat, 0)
-        dty = derivative(heat, 1)
-        d2tx = second_derivative(heat, 0)
-        d2ty = second_derivative(heat, 1)
+        ddx = derivative(density, 1)
+        ddy = derivative(density, 0)
+        d2dx = second_derivative(density, 1)
+        d2dy = second_derivative(density, 0)
+
+        dix = derivative(ink, 1)
+        diy = derivative(ink, 0)
+        d2ix = second_derivative(ink, 1)
+        d2iy = second_derivative(ink, 0)
+
+
+        
+        dtx = derivative(heat, 1)
+        dty = derivative(heat, 0)
+        d2tx = second_derivative(heat, 1)
+        d2ty = second_derivative(heat, 0)
 
         
         ddt = -(
@@ -171,8 +171,6 @@ def solve(n):
             ddx*velocity_u + ddy*velocity_v -
             (d2dx+d2dy)*dd
         )/density
-        
-
         
 
         dut = -(
@@ -186,13 +184,6 @@ def solve(n):
             ddy  - (d2vx+d2vy)*vd 
             )
         
-        
-
-
-
-
-
-
 
         dit = -(
             -flux(ink,velocity_u,velocity_v)-
@@ -209,7 +200,6 @@ def solve(n):
        
         density += ddt*dt
 
-       
         velocity_u += dut*dt
         velocity_v += dvt*dt
         
@@ -232,16 +222,16 @@ def solve(n):
         heat[:,:] = np.clip(heat,-2,2)
        
         # Left boundary:
-        velocity_u[:, 0] = velocity_u[:,1]
+        velocity_u[:, 0] = 0
         velocity_v[:, 0] = velocity_v[:,1]
-        density[:, 0] = density[:, 1]
+        density[:, 0] = base_density
         heat[:, 0] = 0
         ink[:, 0] = 0
 
         #Right boundary:
-        velocity_u[:, -1] = velocity_u[:,-2]
-        velocity_v[:, -1] =  1
-        density[:, -1] = density[:, -2]
+        velocity_u[:, -1] = 0
+        velocity_v[:, -1] =  velocity_v[:,-2]
+        density[:, -1] = base_density
         heat[:, -1] = heat[:, -2]
         ink[:, -1] = ink[:, -2]
 
@@ -271,7 +261,7 @@ def solve(n):
     #integrated_ink = (ink.sum(axis=0)*(dx))/(bright.shape[0])
 
     plt.cla()
-    plt.imshow(ink,vmax = 1,vmin=-1,cmap="seismic")
+    plt.imshow((density-density.mean())*100,vmax = 1,vmin=-1,cmap="seismic")
     #plt.imshow(div,vmax = 1,vmin=-1,cmap="seismic")
     #plt.imshow(bright)
     #plt.quiver(x,y,velocity_v,-velocity_u, color="white")

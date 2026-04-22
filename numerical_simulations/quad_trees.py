@@ -66,7 +66,7 @@ class Node():
                 center[2] += i.center_mass.mass
 
         center_body = Body()
-        center_body.pos = center[:2]/(center[2] + 1e-9)
+        center_body.pos = center[:2]/(center[2])
         center_body.mass = center[2]
 
         self.center_mass = center_body

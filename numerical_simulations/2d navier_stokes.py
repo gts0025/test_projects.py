@@ -18,12 +18,13 @@ dt = 0.1
 dx = 1
 viscosity = 0.03
 ink_dispersion = 0.01
-heat_diffusion = 0.01
-convecion_constant = -0.01
-steps = 25*30
-substeps = 20
-pressure_steps = 40
+heat_diffusion = 0.03
 
+convecion_constant = -0.1
+
+steps = 25*60
+substeps = 20
+pressure_steps = 20
 
 #derivatves 
 
@@ -63,20 +64,97 @@ x = np.linspace(-1,1,stamp.shape[0])
 y = np.linspace(-1,1,stamp.shape[1])
 
 xx,yy = np.meshgrid(x,y)
-d = np.sqrt(xx**2 + yy**2) + 0.001
-sigma = np.exp(-(d*d*2)) 
+d = np.sqrt(xx**2 + yy**2 + 0.001) 
+sigma = np.exp(-(d*d*2))*3
 
-eu = (yy/d)*0.7*sigma
-ev = -(xx/d)*0.7*sigma
+eu = (yy/d)*sigma
+ev = -(xx/d)*sigma
 
 
 #scene setup
 
-#velocity_u[30:50,40:60] = eu
-#velocity_v[30:50,40:60] = ev
 
-#velocity_u[40:60,40:60] = eu
-#velocity_v[40:60,40:60] = ev
+def derivatives(velocity_u,velocity_v,heat,ink,viscosity, heat_diffusion,ink_dispersion,dx):
+    ku = -(
+        derivative(velocity_u,1,dx)*velocity_u + 
+        derivative(velocity_u,0,dx)*velocity_v -
+        second_derivative(velocity_u,2,dx)*viscosity
+        )
+    
+    
+    kv = -(
+        derivative(velocity_v,1,dx)*velocity_u + 
+        derivative(velocity_v,0,dx)*velocity_v -
+        heat*convecion_constant -
+        second_derivative(velocity_v,2,dx)*viscosity 
+        )
+    
+    ki = -( 
+            derivative(ink,1,dx)*velocity_u + 
+            derivative(ink,0,dx)*velocity_v -
+            second_derivative(ink,2,dx)*ink_dispersion
+
+            )
+    
+    kh = -(
+            derivative(heat,1,dx)*velocity_u + 
+            derivative(heat,0,dx)*velocity_v -
+            second_derivative(heat,2,dx)*heat_diffusion
+            )
+    
+    return ku, kv , ki, kh
+
+
+def kutta2(velocity_u,velocity_v,heat,ink,viscosity, heat_diffusion,ink_dispersion,dx, dt):
+    k1u, k1v , k1i, k1h = derivatives(
+        velocity_u,velocity_v,heat,ink,
+        viscosity, heat_diffusion,ink_dispersion,dx
+        )
+    
+    k2u, k2v , k2i, k2h = derivatives(
+        velocity_u + k1u*dt, velocity_v + k1v*dt, heat + k1h*dt, ink + k1i*dt, 
+        viscosity, heat_diffusion,ink_dispersion,dx)
+    
+    return dt*( k1u + k2u)/2, dt*( k1v + k2v)/2, dt*( k1i + k2i)/2, dt*( k1h + k2h)/2
+
+def euler(velocity_u,velocity_v,heat,ink,viscosity, heat_diffusion,ink_dispersion,dx, dt):
+    k1u, k1v , k1i, k1h = derivatives(
+        velocity_u,velocity_v,heat,ink,
+        viscosity, heat_diffusion,ink_dispersion,dx
+        )
+    
+
+    return dt*k1u, dt*k1v, dt*k1i, dt*k1h
+
+
+
+
+def kutta4(velocity_u,velocity_v,heat,ink,viscosity, heat_diffusion,ink_dispersion,dx, dt):
+    k1u, k1v , k1i, k1h = derivatives(
+        velocity_u,velocity_v,heat,ink,
+        viscosity, heat_diffusion,ink_dispersion,dx
+        )
+    
+    k2u, k2v , k2i, k2h = derivatives(
+        velocity_u + k1u*dt/2, velocity_v + k1v*dt/2, heat + k1h*dt/2, ink + k1i*dt/2, 
+        viscosity, heat_diffusion,ink_dispersion,dx)
+    
+    k3u, k3v , k3i, k3h = derivatives(
+        velocity_u + k2u*dt/2, velocity_v + k2v*dt/2, heat + k2h*dt/2, ink + k2i*dt/2, 
+        viscosity, heat_diffusion,ink_dispersion,dx)
+    
+    k4u, k4v , k4i, k4h = derivatives(
+        velocity_u + k3u*dt, velocity_v + k3v*dt, heat + k3h*dt, ink + k3i*dt, 
+        viscosity, heat_diffusion,ink_dispersion,dx)
+    
+    return (
+        dt*( k1u + 2*k2u +  2*k3u + k4u)/6, 
+        dt*( k1v + 2*k2v +  2*k3v + k4v)/6,
+        dt*( k1i + 2*k2i +  2*k3i + k4i)/6,
+        dt*( k1h + 2*k2h +  2*k3h + k4h)/6,
+        )   
+
+
 
 
 
@@ -99,78 +177,20 @@ def solve(n):
     
     
     for step in range(substeps):
-      
+        #heat[-1,:] = np.exp(-(np.linspace(-2.1,2,domain.shape[0])**2))
+
+        velocity_u[47:52, :5] = 1
+        velocity_u[48:52, -5:] = -1
+    
+
        
-        
-        # velocity update: 
-        #velocity_u[20:25,0] = 1
-        heat[-1,:] = np.exp(-np.linspace(-1.9,2,100)**2) + 0.1
+        dut, dvt, dit, dht = kutta2(velocity_u,velocity_v,heat,ink,viscosity, heat_diffusion,ink_dispersion,dx, dt) 
+        velocity_u += dut
+        velocity_v += dvt
+        heat += dht
+        ink += dit
 
-
-
-        # current f(x)
-
-        k1u = -(
-            derivative(velocity_u,1,dx)*velocity_u + 
-            derivative(velocity_u,0,dx)*velocity_v 
-            )
         
-        
-        k1v = -(
-            derivative(velocity_v,1,dx)*velocity_u + 
-            derivative(velocity_v,0,dx)*velocity_v -
-            heat*convecion_constant
-            )
-        
-        k1i = -(
-               derivative(ink,0,dx)*velocity_v + 
-               derivative(ink,1,dx)*velocity_u
-
-               )
-        
-        k1h = -(
-               derivative(heat,0,dx)*velocity_v + 
-               derivative(heat,1,dx)*velocity_u
-               )
-        
-        
-        nu = velocity_u + k1u*dt
-        nv = velocity_v + k1v*dt
-        ni = ink + k1i*dt
-        nh = heat + k1h*dt
-
-
-        k2u = -(
-            derivative(nu,1)*nu + 
-            derivative(nu,0)*nv 
-            )
-        
-        
-        k2v = -(
-            derivative(nv,1)*nu + 
-            derivative(nv,0)*nv -
-            nh*convecion_constant
-            )
-        
-        
-        k2i = -(
-               derivative(ni,0)*nv + 
-               derivative(ni,1)*nu
-            )
-        
-        
-        k2h = -(
-               derivative(nh,0)*nv + 
-               derivative(nh,1)*nu
-              
-               )
-        
-        
-        
-        velocity_u += dt*(k1u  + k2u )/2 + second_derivative(velocity_u,2)*viscosity*dt
-        velocity_v += dt*(k1v + k2v )/2 + second_derivative(velocity_v,2)*viscosity*dt
-        ink += dt*(k1i + k2i)/2 + second_derivative(ink,2)*ink_dispersion*dt
-        heat += dt*(k1h + k1h)/2 + second_derivative(heat,2)*heat_diffusion*dt
         
 
         divergence = (
@@ -179,8 +199,8 @@ def solve(n):
         )
 
 
-             
-        for i in range(pressure_steps):
+        
+        for i in range(pressure_steps + (n == 1)*4*pressure_steps):
             pressure[1:-1,1:-1] = (
                 pressure[2:,1:-1]+
                 pressure[:-2,1:-1]+
@@ -189,11 +209,11 @@ def solve(n):
                 divergence[1:-1,1:-1]*(dx**2)*(density/dt)
             )/4
             
-            pressure[:,0] = pressure[:,1] 
-            pressure[:,-1] = pressure[:,-2] 
+            pressure[:,0] = pressure[:,1]
+            pressure[:,-1] = pressure[:,-2]
             
             pressure[0,:] = pressure[1,:] 
-            pressure[-1,:] = pressure[-2,:]
+            pressure[-1,:] = pressure[-2,:] 
 
        
         dpx = derivative(pressure,1,dx)
@@ -210,13 +230,12 @@ def solve(n):
     
         
         
-        #heat[-1,:] = 1 + np.random.random((1,domain.shape[1]))*0.3
-
+        
         velocity_u[:,0] =  velocity_u[:,1]*0
         velocity_u[:,-1] =  velocity_u[:,-2]*0
         
         velocity_u[0,:] = velocity_u[1,:]*0
-        velocity_u[-1,:] = velocity_u[-1,:]*0
+        velocity_u[-1,:] = velocity_u[-2,:]*0
 
        
         velocity_v[:,0] = velocity_v[:,1]*0
@@ -234,20 +253,20 @@ def solve(n):
 
       
        
-    x = np.linspace(0,domain.shape[1]*dx,domain.shape[1])
-    y = np.linspace(0,domain.shape[0]*dx,domain.shape[0])
+    x = np.linspace(0,domain.shape[1],domain.shape[1])
+    y = np.linspace(0,domain.shape[0],domain.shape[0])
     pressure -= pressure.mean()  
-    curl = derivative(velocity_u,0,dx)-derivative(velocity_v,1,dx)
+    curl = (derivative(velocity_u,0,dx)-derivative(velocity_v,1,dx))*2
     div = derivative(velocity_u,1,dx)+derivative(velocity_v,0,dx)
     vel = np.sqrt(velocity_u**2 + velocity_v**2)
 
     plt.clf()
-    plt.title("2d_lid_driven_flow")
-    plt.imshow(pressure, cmap="inferno",vmin = 0)
+    plt.title("2d_poisson_heat_source_flow")
+    plt.imshow(curl, cmap="twilight",vmin = -1, vmax = 1)
     plt.colorbar(label = "heat")
 
     #plt.plot(velocity_u[:20,10])
-    #plt.streamplot(x,y,velocity_u,velocity_v,color="black",density = 1.5)
+    #plt.streamplot(x,y,velocity_u,velocity_v,color="white",density = 1.5)
 
     #plt.pause(0.001)
 
@@ -272,7 +291,7 @@ xx, yy = np.meshgrid(x,y)
 
 
 if __name__ == "__main__" and 1:
-    path = "2d_lid_driven_flow"
+    path = "2d_poisson_heat_source_flow"
     gif_path = path + '.gif'
     mp4_path = path + '.mp4'
     writer = animation.PillowWriter(fps=25,bitrate=400)
