@@ -136,21 +136,26 @@ class BBNode:
         new_child1.pos = [self.pos[0],self.pos[1]]
         new_child1.size  = self.size/2
         new_child1.level = self.level+1
+        new_child1.min_size  = self.min_size
+
 
         new_child2 = BBNode()
         new_child2.pos = [self.pos[0],self.pos[1]+self.size/2]
         new_child2.size  = self.size/2
         new_child2.level = self.level+1
+        new_child2.min_size  = self.min_size
 
         new_child3 = BBNode()
         new_child3.pos = [self.pos[0]+self.size/2,self.pos[1]]
         new_child3.size  = self.size/2
         new_child3.level = self.level+1
+        new_child3.min_size  = self.min_size
 
         new_child4 = BBNode()
         new_child4.pos = [self.pos[0] + self.size/2,self.pos[1] + self.size/2]
         new_child4.size  = self.size/2
         new_child4.level = self.level+1
+        new_child4.min_size  = self.min_size
 
         self.children = [new_child1, new_child2, new_child3, new_child4]
 
@@ -167,7 +172,7 @@ class BBNode:
         if self.enclose(value):
             self.amount += 1
             self.t += value.t
-            if len(self.basket) < self.basket_size:
+            if len(self.basket) < self.basket_size or self.size <= self.min_size*2:
                 self.basket.append(value)
                 
             else:
