@@ -13,8 +13,7 @@ def place_sphere(pos, radius, field, value):
     y = np.arange(field.shape[1]) - pos[1]
 
     xx, yy = np.meshgrid(x, y, indexing="ij")
-    mask = xx**2 + yy**2 <= radius**2
-
+    mask = abs(np.sqrt(xx**2 + yy**2) - radius) < 2
     field[mask] = value
     return field
 
@@ -99,13 +98,8 @@ def run(n,sub,viz = 1):
                     
                     )
 
-            dh = (
-                second_derivative(h1,0,1)+
-                second_derivative(h1,1,1)
-                )
 
-
-            h2 = (2*h1 - h0 ) + dh*(dt*dt)*(c*c) - ((h1-h0))*u
+            h2 = (2*h1 - h0 ) + second_derivative(h1,2,1)*(dt*dt)*(c*c) - ((h1-h0))*u
 
             
             h0 = h1
@@ -151,13 +145,13 @@ f = 2
 freq = (2*np.pi)*f
 
 
-c += np.random.random(widt_height)*0.1
+#c += np.random.random(widt_height)*0.1
 h0 = grid
 h1 = grid
 
 angle_range = 30
 angle_res = 60
-steps = 600
+steps = round(2*widt_height[0]/(c.mean()*dt))
 u = 0.01
 substeps = 1
 emit_stop = 5
@@ -181,7 +175,7 @@ for i in range(0):
     c = place_box(
         [random.randint(20,180),
          random.randint(20,180)],
-         10,c,0
+         10,c,10
         )
 
 for i in range(0):
@@ -189,10 +183,10 @@ for i in range(0):
     c = place_sphere(
         [random.randint(20,80),
          random.randint(20,80)],
-         10,c,0
+         10,c,6
         )
 
-c = random_field(c)
+#c = random_field(c)
 
 scene = f"{n_disks} disks scattered around the box"
 
@@ -212,8 +206,7 @@ plt.tight_layout()
 
 # /// test_run /// 
 
-
-shift = dp*np.deg2rad(-30)/c.mean()
+shift = dp*np.deg2rad(20)/c.mean()
 time = run(steps,1,1) 
     
 

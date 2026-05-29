@@ -25,37 +25,65 @@ def derivative(field, axis,dx = 1):
             derivative(field, 0,dx)+
             derivative(field, 1,dx)
         )
-    
+
     
 def second_derivative(field, axis,dx = 1):
     zero_field = np.zeros_like(field)
-    if axis == 0:
-        zero_field[1:-1,1:-1]+= (
-            (field[2:, 1:-1] + field[:-2, 1:-1] - 2 * field[1:-1, 1:-1]) / dx**2
-            )
-        return zero_field
+    match axis:
+        case 0:
+            zero_field[1:-1,1:-1]+= (
+                (field[2:, 1:-1] + field[:-2, 1:-1] - 2 * field[1:-1, 1:-1]) / dx**2
+                )
+            return zero_field
     
-    elif axis == 1:
-        zero_field[1:-1,1:-1]+=(
-            (field[1:-1, 2:] + field[1:-1, :-2] - 2 * field[1:-1, 1:-1]) / dx**2
-            )
-        return zero_field
+        case 1:
+            zero_field[1:-1,1:-1]+=(
+                (field[1:-1, 2:] + field[1:-1, :-2] - 2 * field[1:-1, 1:-1]) / dx**2
+                )
+            return zero_field
     
-    elif axis == 2:
-        return (
-            second_derivative(field, 0,dx)+
-            second_derivative(field, 1,dx)
-        )
+        case 2:
+            return (
+                second_derivative(field, 0,dx)+
+                second_derivative(field, 1,dx)
+            )
+    
+def average(field, axis):
+    zero_field = np.zeros_like(field)
+
+    match axis:
+        case 0:
+            zero_field[1:-1,1:-1] += (
+                (field[1:-1, 2:] + field[1:-1, :-2] + field[1:-1, 1:-1])
+            )/3
+            return zero_field
+            
+
+        case 1:
+            zero_field[1:-1,1:-1] += (
+                (field[2:,1:-1] + field[:-2, 1:-1] + field[1:-1, 1:-1])
+            )/3
+            return zero_field
+
+        case 2:
+            zero_field[1:-1, 1:-1] += (
+                field[2:,1:-1]+
+                field[:-2,1:-1]+
+                field[1:-1,2:]+
+                field[1:-1,:-2]+
+                field[1:-1,1:-1]
+            )/5
+            return zero_field
     
    
-def fullBoundary2d(field,t):
+def fullBoundary2d(field,t,value = 0):
     match t:
         case 0:
-            field[0,:] = 0
-            field[-1,:] = 0
+            field[0,:] = value
+            field[-1,:] = value
 
-            field[:,0] = 0
-            field[:,-1] = 0
+            field[:,0] = value
+            field[:,-1] = value
             
         case 1:
             field[0,:] = field[1,:]
@@ -97,6 +125,8 @@ def place_sphere(pos, radius, field, value):
 
     field[mask] = value
     return field
+
+
 
 def place_box(pos, side, field, value):
     field[pos[0]-side:pos[0]+side,pos[1]-side:pos[1]+side] = value

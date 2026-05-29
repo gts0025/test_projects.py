@@ -64,7 +64,7 @@ if __name__  == "__main__":
 
     b1 = Body()
     b2 = Body()
-    b2.mass = 100
+    #b2.mass = 100
     b3 = Body()
     b1_line = [[],[]]
     b2_line = [[],[]]

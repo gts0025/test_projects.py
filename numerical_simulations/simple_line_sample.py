@@ -8,7 +8,7 @@ def linear(p):
     return v 
 
 def sample(p): 
-    i =  (/(axis[-1]-axis[0])) * axis.shape[0]
+    i =  ((axis[-1]-axis[0])) * axis.shape[0]
     base =  max(0,min(round(i),axis.shape[0]-1)) 
     c  = i-base
     top = max(0,min(round(i+1),axis.shape[0]-1)) 

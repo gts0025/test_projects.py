@@ -1,6 +1,7 @@
 #2d gas equation 
 import numpy as np
 import matplotlib.pyplot as plt
+from fieldTools import derivative, second_derivative
 from matplotlib import animation
 from PIL import Image
 import os
@@ -71,37 +72,6 @@ figure,ax = plt.subplots(1,1,figsize=(5,5))
 
 
 
-
-
-def derivative(field, axis):
-    zero_field = np.zeros_like(field)
-    if axis == 0:
-        zero_field[1:-1,1:-1]+=( 
-            (field[2:, 1:-1] - field[:-2, 1:-1]) / (2 * dx)
-            )
-        
-        return zero_field
-    
-    elif axis == 1:
-       zero_field[1:-1,1:-1]+=(
-           (field[1:-1, 2:] - field[1:-1, :-2]) / (2 * dx)
-           )
-       
-       return zero_field
-    
-def second_derivative(field, axis):
-    zero_field = np.zeros_like(field)
-    if axis == 0:
-        zero_field[1:-1,1:-1]+= (
-            (field[2:, 1:-1] + field[:-2, 1:-1] - 2 * field[1:-1, 1:-1]) / dx**2
-            )
-        return zero_field
-    
-    elif axis == 1:
-        zero_field[1:-1,1:-1]+=(
-            (field[1:-1, 2:] + field[1:-1, :-2] - 2 * field[1:-1, 1:-1]) / dx**2
-            )
-        return zero_field
    
 #density[10,10] = base_density +2
 
@@ -113,17 +83,6 @@ mask = []
 flip = 0
 value = 1
 
-for i in range(bright.shape[0]):
-    mask.append(value)
-    flip += 1
-    if(flip > 10):
-        flip = 0 
-        if value == 1:
-            value = 0
-        else:value = 1
-
-mask = np.array(mask)
-#ink[:50,:50] = 2
 
 ink[:,:25] = 1
 
@@ -142,24 +101,7 @@ def solve(n):
     
     for step in range(substeps):
         
-        
-        
-        
-        
-        
-        
-        
-        velocity_u += gravity*dt*density
-        
-
-        
-
-
-        
         #heat[-2:,3:] = 2
-
-        
-
         dux = derivative(velocity_u, 0)
         duy = derivative(velocity_u, 1)
 
@@ -185,15 +127,15 @@ def solve(n):
 
         for i in range(10):
             flux  = -(
-            ( velocity_u[:-2,1:-1] - velocity_u[2:,1:-1] ) +
-            (velocity_v[1:-1,:-2] - velocity_v[1:-1,2:])
+            derivative(velocity_u,1) +
+            derivative(velocity_v,0)
             )*0.1
 
-            velocity_u[1:-1,2:] -= flux/4
-            velocity_u[1:-1,:-2] += flux/4
-            velocity_v[2:,1:-1] -= flux/4
-            velocity_v[:-2,1:-1] += flux/4
-            velocity_v[25,25] = 0.1
+            velocity_u[1:-1,2:] += flux[1:-1,1:-1]/4
+            velocity_u[1:-1,:-2] -= flux[1:-1,1:-1]/4
+            velocity_v[2:,1:-1] += flux[1:-1,1:-1]/4
+            velocity_v[:-2,1:-1] -= flux[1:-1,1:-1]/4
+            velocity_v[25,25] = 1
 
         
 
@@ -211,23 +153,17 @@ def solve(n):
         
 
         dit = -(
-            dix*velocity_u+diy*velocity_v-
-            (d2ix + d2iy)*id
+            dix*velocity_u+diy*velocity_v
+            -(d2ix + d2iy)*id
             )
         
         
         dtt = -(
-            dtx*velocity_u +  dty*velocity_v-
-            (d2tx + d2ty)*td
+            dtx*velocity_u +  dty*velocity_v
+            -(d2tx + d2ty)*td
             )
         
-        velocity_v[walls>0] = 0
-        velocity_u[walls>0] = 0
-      
-
-   
-
-       
+        
         velocity_u += dut*dt
         velocity_v += dvt*dt
         
@@ -287,8 +223,8 @@ def solve(n):
     #integrated_ink = (ink.sum(axis=0)*(dx))/(bright.shape[0])
 
     plt.cla()
-    #plt.imshow(div,vmax = 1,vmin=-1,cmap="twilight")
-    plt.quiver(x,y,velocity_u,velocity_v)
+    plt.imshow(mag,vmax = 1,vmin=-1,cmap="twilight")
+    #plt.quiver(x,y,velocity_u,velocity_v)
     #plt.plot(integrated_across)
     #plt.plot(integrated_ink)
 

@@ -29,7 +29,7 @@ v_max = 2
 
 
 dt = 0.1
-vd = 0.03
+vd = 0.1
 hd = 1
 
 
@@ -39,7 +39,7 @@ dw = 1
 dx = 1
 steps = 1000
 substeps = 20
-g = 10
+g = 100
 
 #derivatves 
 
@@ -101,9 +101,7 @@ def solve(n):
     for step in range(substeps):
 
       
-        velocity_v[40:55,40:70] = 0
-        velocity_u[40:55,40:70] = 0
-
+     
 
         # ---k1
 
@@ -211,26 +209,33 @@ def solve(n):
         velocity_v += dt*(k1v + 2*k2v + 2*k3v + k4v)/6
         height += dt*(k1h + 2*k2h + 2*k3h + k4h)/6
 
+
+        velocity_v[40:,40:50] = 0
+        velocity_u[40:,40:50] = 0
+        #height[40:,40:70] = 1
+
+
       
         
         velocity_u[0,:] = 0
         velocity_u[-1,:] = 0
         
         velocity_u[:,0] = 1
-        velocity_u[:,-1] = 1
+        velocity_u[:,-1] = velocity_u[:,-2]
         
         
         velocity_v[0,:] = 0
         velocity_v[-1,:] = 0
 
-        velocity_v[:,0] = velocity_v[:,1]*0
-        velocity_v[:,-1] = velocity_v[:,-2]*0
+        velocity_v[:,0] = 0
+        velocity_v[:,-1] = velocity_v[:,-2]
 
-        velocity_u = np.clip(velocity_u,-v_max,v_max)
-        velocity_v = np.clip(velocity_v,-v_max,v_max)
+        #velocity_u = np.clip(velocity_u,-v_max,v_max)
+        #velocity_v = np.clip(velocity_v,-v_max,v_max)
 
         height[0,:] = height[1,:]
         height[-1,:] = height[-2,:]
+
         height[:,0] = 1
         height[:,-1] = height[:,-2]
         
@@ -239,6 +244,7 @@ def solve(n):
     mag = np.sqrt(velocity_u**2 + velocity_v**2)
     dh = (height - height.mean())
     plt.clf()
+    plt.title("compressible flow around a wall") 
     plt.imshow(curl, vmax = 1, vmin = -1, cmap="twilight",)
     #plt.colorbar(label = "speed")
     #plt.legend()

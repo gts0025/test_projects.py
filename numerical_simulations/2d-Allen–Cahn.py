@@ -46,6 +46,30 @@ def laplacian(u):
 
 susbstanceA = 0
 susbstanceb = 0
+
+def allen(u):
+    k1 = laplacian(u**3 -u - K*laplacian(u))*R
+
+    u2 = u + dt*k1/2
+    k2 = laplacian(u2**3 -u2 - K*laplacian(u2))*R
+
+    u3 = u + dt*k2/2
+    k3 = laplacian(u3**3 -u3 - K*laplacian(u3))*R
+
+    u4 = u + dt*k3
+    k4 = laplacian(u3**3 -u3 - K*laplacian(u3))*R
+
+    dut = dt*(k1 + 2*k2 + 2*k3 + k4)/6 
+    u += dut
+
+    u[0,1:-1] = u[1,1:-1]
+    u[-1,1:-1] = u[-2,1:-1]
+
+    u[1:-1,0] = u[1:-1,1]
+    u[1:-1,-1] = u[1:-1,-2]
+
+    return u
+
 for i in range(1000):
 
     #laplacian poerator
@@ -54,10 +78,7 @@ for i in range(1000):
     signed = u.sum()
     dut = u
     #print("A: ", susbstanceA,"B: ",  susbstanceb, "signed: ", signed)
-    for i in range(50):
-  
-            
-        
+    for i in range(50):      
         #difuse the material
        
         k1 = laplacian(u**3 -u - K*laplacian(u))*R
@@ -74,8 +95,6 @@ for i in range(1000):
         dut = dt*(k1 + 2*k2 + 2*k3 + k4)/6 
         u += dut
       
-
-        
         u[0,1:-1] = u[1,1:-1]
         u[-1,1:-1] = u[-2,1:-1]
 
@@ -84,7 +103,7 @@ for i in range(1000):
 
 
     #plot the data:
-    plt.imshow(abs(dut/dt),cmap="seismic", vmax = 0.1)
+    plt.imshow(u,cmap="seismic")
     plt.title("Allen-cahn model for reaction diffusion")
 
     plt.colorbar()
