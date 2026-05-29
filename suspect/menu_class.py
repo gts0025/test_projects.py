@@ -7,14 +7,14 @@ class Button:
     def __init__(
             self,text:str = None ,
             quad = [0,0,0,0],
-            t_color = [100,100,100],
-            q_color = [50,50,50],
+            text_iddle_color = [100,100,100],
+            quad_iddle_color = [50,50,50],
 
-            t_hold = [150,150,150,255],
-            q_hold = [100,100,100,255],
+            text_hover_color = [150,150,150,255],
+            quad_hover_color = [100,100,100,255],
 
-            t_active = [200,200,200,255],
-            q_active = [150,150,150,255],
+            text_press_color = [200,200,200,255],
+            quad_press_color = [150,150,150,255],
 
             action = None,
 
@@ -25,44 +25,50 @@ class Button:
         self.quad = quad
         self.text  = text
 
-        self.quad_color = q_color
-        self.text_color = t_color
+        self.quad_iddle_color = quad_iddle_color
+        self.text_iddle_color = text_iddle_color
 
-        self.quad_hold = q_hold
-        self.text_hold  = t_hold
+        self.quad_hover_color = quad_hover_color
+        self.text_hover_color  = text_hover_color
 
-        self.quad_active = q_active
-        self.text_active  = t_active
+        self.quad_press_color = quad_press_color
+        self.text_press_color  = text_press_color
 
         self.state = state
         self.action = action
 
-        self.curremt_t = t_color
-        self.curremt_q = q_color
+        self.current_text_color = text_iddle_color
+        self.current_quad_color = quad_iddle_color
 
-        self.fonts = pygame.font.SysFont("Arial",round(quad[3]/2))
+        self.fonts = pygame.font.SysFont("Arial", round(quad[3] * 0.7))
         self.text_pos = (self.quad[0]+(quad[3]/2),self.quad[1]+2)
-        
-    
+
+
     def render(self,surface):
         match self.state: 
             case 0:
-                self.curremt_t = self.text_color
-                self.curremt_q = self.quad_color
+                self.current_text_color = self.text_iddle_color
+                self.current_quad_color = self.quad_iddle_color
             case 1:
-                self.curremt_t = self.text_hold
-                self.curremt_q = self.quad_hold
+                self.current_text_color = self.text_hover_color
+                self.current_quad_color = self.quad_hover_color
             case 2:
-                self.curremt_t = self.text_active
-                self.curremt_q = self.quad_active
+                self.current_text_color = self.text_press_color
+                self.current_quad_color = self.quad_press_color
 
-        pygame.draw.rect(surface,self.curremt_q,self.quad)
-        pygame.draw.rect(surface,self.curremt_t,self.quad,1)
+        pygame.draw.rect(surface,self.current_quad_color,self.quad)
+        pygame.draw.rect(surface,self.current_text_color,self.quad,1)
        
 
         if self.text is not None:
-            self.render_text = self.fonts.render(self.text, True,self.curremt_t)
-            surface.blit(self.render_text,self.text_pos)
+
+            self.render_text = self.fonts.render(self.text, True,self.current_text_color)
+            text_surface = self.fonts.render(self.text, True, self.current_text_color)
+            text_rect = text_surface.get_rect(center=(
+                self.quad[0] + self.quad[2] // 2,
+                self.quad[1] + self.quad[3] // 2
+            ))
+            surface.blit(text_surface, text_rect)
     
     def holver(self):
         mouse_pos = pygame.mouse.get_pos()
@@ -73,50 +79,55 @@ class Button:
             ):
             self.state = 1
             return True
-        else:self.state = 0
+        else:
+            self.state = 0
+            return False
         
     def click(self):
         if self.holver():
             if pygame.mouse.get_pressed()[0]:
-                self.action()
+                if self.action:
+                    self.action()
                 self.state = 2
     
                     
         
 class Slider(Button):
     def __init__(
-            self,text:str = None ,
-            quad = [0,0,0,0],
-            t_color = [100,100,100],
-            q_color = [50,50,50],
+                self,text:str = None ,
+                quad = [0,0,0,0],
+                text_iddle_color = [100,100,100],
+                quad_iddle_color = [50,50,50],
 
-            t_hold = [150,150,150,255],
-            q_hold = [70,70,70,255],
+                text_hover_color = [150,150,150,255],
+                quad_hover_color = [100,100,100,255],
 
-            t_active = [255,255,255,255],
-            q_active = [150,150,150,255],
+                text_press_color = [200,200,200,255],
+                quad_press_color = [150,150,150,255],
 
-            action = None,
 
-            state = 0
-            ):
-        
+                action = None,
+
+                state = 0,
+                ):
+            
         super().__init__(
             text,
             quad ,
-            t_color,
-            q_color,
+            text_iddle_color,
+            quad_iddle_color,
 
-            t_hold,
-            q_hold,
+            text_hover_color,
+            quad_hover_color,
 
-            t_active,
-            q_active,
+            text_press_color,
+            quad_press_color,
 
             action,
 
             state
-        )
+            )
+        
         self.x = 0
 
     def click(self):
@@ -125,17 +136,17 @@ class Slider(Button):
                 mouse = pygame.mouse.get_pos()
                 self.x = (mouse[0]-self.quad[0])/self.quad[2]
                 self.state = 1
-
+                return True
             
 
     def render(self, surface):
-        self.render_text = self.fonts.render(self.text, True,self.text_color)
+        self.render_text = self.fonts.render(self.text, True,self.current_text_color)
         super().render(surface)
-        pygame.draw.rect(surface,self.curremt_t,
+        pygame.draw.rect(surface,self.current_text_color,
         [
             self.quad[0],
             self.quad[1],
-            (self.quad[2]*self.x), 
+            round(self.quad[2]*self.x), 
             self.quad[3]
             ]
         )

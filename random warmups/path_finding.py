@@ -1,6 +1,6 @@
 import pygame,numpy as np
 import fieldTools
-from matplotlib import animation
+
 class Grid:
     def __init__(self,w,h):
         self.w = w
