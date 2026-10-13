@@ -14,17 +14,17 @@ dots = [[350,350,[]]]
 max_n = 100
 n = 1
 max_split = 3
-
+maxMerge = 3
 
 loop = 1
 
 R = 30
-switch = []
+
 
 
 def generate(max_n = 1000, max_split = 4, steps = 1000, r = 50, viz = 1, split_push = 20, merge_factor = 0.01):
 
-
+    merged  = 0
     for i in range(steps):
 
         for event in pygame.event.get():
@@ -49,12 +49,13 @@ def generate(max_n = 1000, max_split = 4, steps = 1000, r = 50, viz = 1, split_p
             dots[key][2].append(len(dots)-1)
 
         
-        if random.random() < merge_factor:
+        if random.random() < merge_factor and merged < maxMerge:
             k1 = random.randint(0,len(dots)-1)
             k2 = random.randint(0,len(dots)-1)
             if((k1 != k2 ) and (k2 not in dots[k1][2]) and (k1 not in dots[k2][2]) ):
                 dots[k1][2].append(k2)
                 dots[k2][2].append(k1)
+                merged += 1
 
 
         
@@ -80,7 +81,7 @@ def generate(max_n = 1000, max_split = 4, steps = 1000, r = 50, viz = 1, split_p
     
                     normal = (( dots[i][0] - dots[w][0] )/d, ( dots[i][1] - dots[w][1] )/d)
 
-                    k = -(d-r)*0.1
+                    k = -(d-r)*0.2
                     
                     dots[i][0] += normal[0]*k
                     dots[w][0] -= normal[0]*k
@@ -129,8 +130,6 @@ def dfs(tree, maxSteps = 1000):
                 visited.append(i)
                  
     
-generate(100,viz=1, steps = 1000, r = 20, merge_factor=0.005)
+generate(100,viz=1, steps = 10000, r = 20, merge_factor=0.01)
 
-def solve():
-    
 
