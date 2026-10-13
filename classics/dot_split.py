@@ -22,7 +22,11 @@ R = 30
 
 
 
-def generate(max_n = 1000, max_split = 4, steps = 1000, r = 50, viz = 1, split_push = 20, merge_factor = 0.01):
+def generate(
+        max_n = 1000, max_split = 4,
+        steps = 1000, r = 50, viz = 1,
+        split_push = 20, merge_factor = 0.01
+        ):
 
     merged  = 0
     for i in range(steps):
@@ -49,7 +53,7 @@ def generate(max_n = 1000, max_split = 4, steps = 1000, r = 50, viz = 1, split_p
             dots[key][2].append(len(dots)-1)
 
         
-        if random.random() < merge_factor and merged < maxMerge:
+        if (len(dots) >= max_n) and merged < maxMerge:
             k1 = random.randint(0,len(dots)-1)
             k2 = random.randint(0,len(dots)-1)
             if((k1 != k2 ) and (k2 not in dots[k1][2]) and (k1 not in dots[k2][2]) ):
@@ -81,7 +85,7 @@ def generate(max_n = 1000, max_split = 4, steps = 1000, r = 50, viz = 1, split_p
     
                     normal = (( dots[i][0] - dots[w][0] )/d, ( dots[i][1] - dots[w][1] )/d)
 
-                    k = -(d-r)*0.2
+                    k = -(d-r)*0.5
                     
                     dots[i][0] += normal[0]*k
                     dots[w][0] -= normal[0]*k
@@ -130,6 +134,6 @@ def dfs(tree, maxSteps = 1000):
                 visited.append(i)
                  
     
-generate(100,viz=1, steps = 10000, r = 20, merge_factor=0.01)
+generate(100,viz=1, steps = 10000, r = 20, merge_factor=0.01, max_split=3)
 
 
